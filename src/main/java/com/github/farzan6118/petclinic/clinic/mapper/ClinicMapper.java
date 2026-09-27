@@ -19,6 +19,8 @@ public class ClinicMapper {
     public ClinicResponseDto toDto(Clinic clinic) {
         return new ClinicResponseDto(
                 clinic.getUuid(),
+                clinic.getName(),
+                clinic.getCode(),
                 addressMapper.toDto(clinic.getAddress()),
                 clinic.isActive()
         );
@@ -26,6 +28,8 @@ public class ClinicMapper {
 
     public Clinic toEntity(CreateClinicRequestDto request) {
         Clinic clinic = new Clinic();
+        clinic.setCode(request.code());
+        clinic.setName(request.name());
         clinic.setAddress(addressMapper.toEntity(request.address()));
         clinic.setActive(request.active());
         return clinic;
@@ -33,6 +37,8 @@ public class ClinicMapper {
 
     public void toEntity(UpdateClinicRequestDto request, Clinic clinic) {
         Address address = clinic.getAddress();
+        clinic.setName(request.name());
+        clinic.setCode(request.code());
         addressMapper.toEntity(request.address(), address);
         clinic.setActive(request.active());
     }
@@ -40,7 +46,7 @@ public class ClinicMapper {
     public UuidAndTitleResponseDto toUuidAndTitle(Clinic clinic) {
         return new UuidAndTitleResponseDto(
                 clinic.getUuid(),
-                clinic.getAddress().getTitle()
+                String.format("(%d) - %s", clinic.getCode(), clinic.getName())
         );
     }
 }

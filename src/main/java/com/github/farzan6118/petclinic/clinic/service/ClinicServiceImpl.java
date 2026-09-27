@@ -72,8 +72,17 @@ public class ClinicServiceImpl implements ClinicService {
     @Transactional
     @CacheEvict(value = "clinic")
     public void create(CreateClinicRequestDto request) {
+        validateUniqueCode(request.code());
         clinicRepository.save(clinicMapper.toEntity(request));
         log.info("clinic created");
+    }
+
+    private void validateUniqueCode(Integer code) {
+        if (clinicRepository.existsByCode(code)) {
+            throw new ConflictException(
+                    "clinic with this code already exists",
+                    "Duplicate clinic code");
+        }
     }
 
     @Override
@@ -81,11 +90,17 @@ public class ClinicServiceImpl implements ClinicService {
     @CacheEvict(value = "clinic")
     public void update(UUID uuid, UpdateClinicRequestDto request) {
         Clinic clinic = getEntityByUuid(uuid);
-        if (clinic.getEntityStatus() != EntityStatus.ACTIVE) {
-            throw new ConflictException("Clinic is already inactive", "clinic is already inactive");
-        }
+        validateUniqueCodeForUpdate(request.code(), clinic.getUuid());
         clinicMapper.toEntity(request, clinic);
         log.info("clinic updated: {}", uuid);
+    }
+
+    private void validateUniqueCodeForUpdate(Integer code, UUID Uuid) {
+        if (clinicRepository.existsByCodeAndUuidNot(code, Uuid)) {
+            throw new ConflictException(
+                    "clinic with this code already exists",
+                    "Duplicate clinic code");
+        }
     }
 
     @Override
@@ -94,7 +109,9 @@ public class ClinicServiceImpl implements ClinicService {
     public void delete(UUID uuid) {
         Clinic clinic = getEntityByUuid(uuid);
         if (clinic.getEntityStatus() != EntityStatus.ACTIVE) {
-            throw new ConflictException("Clinic is already inactive", "clinic is already inactive");
+            throw new ConflictException(
+                    "clinic is already inactive",
+                    "clinic is already inactive");
         }
         clinic.setEntityStatus(EntityStatus.DELETED);
         log.info("clinic deleted: {}", uuid);

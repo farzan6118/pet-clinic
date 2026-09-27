@@ -10,8 +10,11 @@ import com.github.farzan6118.petclinic.owner.model.Owner;
 import com.github.farzan6118.petclinic.owner.service.OwnerService;
 import com.github.farzan6118.petclinic.pet.dto.request.CreatePetRequestDto;
 import com.github.farzan6118.petclinic.pet.dto.request.UpdatePetRequestDto;
+import com.github.farzan6118.petclinic.pet.dto.response.MedicalRecordResponseDto;
 import com.github.farzan6118.petclinic.pet.dto.response.PetResponseDto;
+import com.github.farzan6118.petclinic.pet.mapper.MedicalRecordMapper;
 import com.github.farzan6118.petclinic.pet.mapper.PetMapper;
+import com.github.farzan6118.petclinic.pet.model.MedicalRecord;
 import com.github.farzan6118.petclinic.pet.model.Pet;
 import com.github.farzan6118.petclinic.pet.model.Species;
 import com.github.farzan6118.petclinic.pet.repository.PetRepository;
@@ -36,6 +39,8 @@ public class PetServiceImpl implements PetService {
     private final PageMapper pageMapper;
     private final PetMapper petMapper;
     private final OwnerService ownerService;
+    private final MedicalRecordService medicalRecordService;
+    private final MedicalRecordMapper medicalRecordMapper;
 
     @Override
     public PetResponseDto getByUuid(UUID uuid) {
@@ -125,6 +130,12 @@ public class PetServiceImpl implements PetService {
                 .stream()
                 .map(petMapper::mapToDto)
                 .toList();
+    }
+
+    @Override
+    public MedicalRecordResponseDto getMedicalRecordByPetUuid(UUID uuid) {
+        MedicalRecord entityByPetUuid = medicalRecordService.getEntityByPetUuid(uuid);
+        return medicalRecordMapper.toDto(entityByPetUuid);
     }
 }
 

@@ -6,6 +6,8 @@ import java.util.UUID;
 
 public record ClinicResponseDto(
         UUID uuid,
+        String name,
+        Integer code,
         AddressResponseDto address,
         boolean active
 ) {

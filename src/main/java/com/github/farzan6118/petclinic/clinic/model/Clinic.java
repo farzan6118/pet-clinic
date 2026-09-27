@@ -3,6 +3,8 @@ package com.github.farzan6118.petclinic.clinic.model;
 import com.github.farzan6118.petclinic.common.persistence.BaseEntity;
 import com.github.farzan6118.petclinic.person.model.Address;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,6 +16,14 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor
 @SQLRestriction("entity_status <> 'DELETED'")
 public class Clinic extends BaseEntity<Integer> {
+
+    @Column(nullable = false, length = 100)
+    private String name;
+
+    @Min(1)
+    @Max(10)
+    @Column(nullable = false, unique = true)
+    private int code;
 
     @OneToOne(
             cascade = CascadeType.ALL,

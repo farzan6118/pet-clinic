@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MedicalRecordMapper {
 
-    public MedicalRecordResponseDto mapToDto(MedicalRecord medicalRecord) {
+    public MedicalRecordResponseDto toDto(MedicalRecord medicalRecord) {
         if (medicalRecord == null) {
             return null;
         }

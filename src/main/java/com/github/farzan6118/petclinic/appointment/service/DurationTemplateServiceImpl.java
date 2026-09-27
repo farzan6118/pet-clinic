@@ -64,6 +64,13 @@ public class DurationTemplateServiceImpl implements DurationTemplateService {
     }
 
     @Override
+    public DurationTemplateResponseDto findByDurationMinutes(Integer durationMinutes) {
+        DurationTemplate durationTemplate = durationTemplateRepository.findByDurationMinutes(durationMinutes)
+                .orElseThrow(() -> new ResourceNotFoundException("duration template not found"));
+        return durationTemplateMapper.mapToDto(durationTemplate);
+    }
+
+    @Override
     @Cacheable(value = "durationTemplate")
     public List<UuidAndTitleResponseDto> findAllIdAndTitle() {
         return durationTemplateRepository.findAll()

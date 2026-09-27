@@ -5,7 +5,6 @@ import com.github.farzan6118.petclinic.appointment.dto.response.VisitResponseDto
 import com.github.farzan6118.petclinic.appointment.model.Visit;
 import com.github.farzan6118.petclinic.common.dto.request.PageAndSortRequestDto;
 import com.github.farzan6118.petclinic.common.dto.response.PageResponseDto;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;

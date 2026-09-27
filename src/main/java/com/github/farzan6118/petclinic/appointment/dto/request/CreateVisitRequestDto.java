@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.github.farzan6118.petclinic.common.enums.VisitType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -26,6 +27,9 @@ public record CreateVisitRequestDto(
         LocalTime visitTime,
         @NotNull(message = "visit.type.is.required")
         VisitType visitType,
+        @Min(2)
+        @Min(120)
+        Integer durationMinutes,
         @Size(max = 2048, message = "description.too.long")
         String description
 

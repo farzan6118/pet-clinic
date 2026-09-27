@@ -23,6 +23,7 @@ public class Pet extends BaseEntity<Long> {
 
     @Size(max = 64)
     private String color;
+
     private String marks;
 
     @Enumerated(EnumType.STRING)
@@ -36,6 +37,7 @@ public class Pet extends BaseEntity<Long> {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     private Owner owner;
+
     private LocalDate birthDate;
 
 }

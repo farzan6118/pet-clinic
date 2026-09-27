@@ -20,6 +20,8 @@ public interface DurationTemplateService {
 
     DurationTemplateResponseDto findByName(String name);
 
+    DurationTemplateResponseDto findByDurationMinutes(Integer durationMinutes);
+
     List<UuidAndTitleResponseDto> findAllIdAndTitle();
 
     void create(CreateDurationTemplateRequestDto request);

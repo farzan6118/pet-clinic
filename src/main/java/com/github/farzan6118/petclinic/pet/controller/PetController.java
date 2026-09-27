@@ -4,6 +4,7 @@ import com.github.farzan6118.petclinic.common.dto.request.PageAndSortRequestDto;
 import com.github.farzan6118.petclinic.common.dto.response.PageResponseDto;
 import com.github.farzan6118.petclinic.pet.dto.request.CreatePetRequestDto;
 import com.github.farzan6118.petclinic.pet.dto.request.UpdatePetRequestDto;
+import com.github.farzan6118.petclinic.pet.dto.response.MedicalRecordResponseDto;
 import com.github.farzan6118.petclinic.pet.dto.response.PetResponseDto;
 import com.github.farzan6118.petclinic.pet.service.PetService;
 import jakarta.validation.Valid;
@@ -26,6 +27,11 @@ public class PetController {
     @GetMapping("/{uuid}")
     public ResponseEntity<PetResponseDto> getByUuid(@PathVariable UUID uuid) {
         return ResponseEntity.ok(petService.getByUuid(uuid));
+    }
+
+    @GetMapping("/{uuid}/medical-record")
+    public ResponseEntity<MedicalRecordResponseDto> getMedicalRecordByPetUuid(@PathVariable UUID uuid) {
+        return ResponseEntity.ok(petService.getMedicalRecordByPetUuid(uuid));
     }
 
     @GetMapping("/page")

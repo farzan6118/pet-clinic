@@ -26,4 +26,6 @@ public interface DurationTemplateRepository extends JpaRepository<DurationTempla
     boolean existsByDurationMinutesAndUuidNot(Integer duration, UUID uuid);
 
     Page<DurationTemplate> findAllByEntityStatus(EntityStatus entityStatus, Pageable pageable);
+
+    Optional<DurationTemplate> findByDurationMinutes(Integer durationMinutes);
 }

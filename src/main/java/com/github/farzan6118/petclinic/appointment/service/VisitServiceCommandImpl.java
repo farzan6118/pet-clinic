@@ -53,7 +53,8 @@ public class VisitServiceCommandImpl implements VisitServiceCommand {
      */
     @Override
     public void bookVisit(CreateVisitRequestDto request) {
-        DurationTemplateResponseDto standardDuration = durationTemplateService.findByName("STANDARD");
+        DurationTemplateResponseDto standardDuration = durationTemplateService
+                .findByDurationMinutes(request.durationMinutes() != null ? request.durationMinutes() : 15);
 
         LocalDateTime visitStart = LocalDateTime.of(request.visitDate(), request.visitTime());
         LocalDateTime visitEnd = getVisitEnd(visitStart, standardDuration);
@@ -212,7 +213,7 @@ public class VisitServiceCommandImpl implements VisitServiceCommand {
 
     private void validateCompletion(Visit visit) {
         validateStatus(visit);
-        validateScheduledTime(visit);
+//        validateScheduledTime(visit);
     }
 
     private void validateStatus(Visit visit) {

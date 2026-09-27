@@ -4,6 +4,7 @@ import com.github.farzan6118.petclinic.common.dto.request.PageAndSortRequestDto;
 import com.github.farzan6118.petclinic.common.dto.response.PageResponseDto;
 import com.github.farzan6118.petclinic.pet.dto.request.CreatePetRequestDto;
 import com.github.farzan6118.petclinic.pet.dto.request.UpdatePetRequestDto;
+import com.github.farzan6118.petclinic.pet.dto.response.MedicalRecordResponseDto;
 import com.github.farzan6118.petclinic.pet.dto.response.PetResponseDto;
 import com.github.farzan6118.petclinic.pet.model.Pet;
 
@@ -24,4 +25,6 @@ public interface PetService {
     Pet getEntityByUuid(UUID uuid);
 
     List<PetResponseDto> getPetListByOwnerUuid(UUID uuid);
+
+    MedicalRecordResponseDto getMedicalRecordByPetUuid(UUID uuid);
 }
