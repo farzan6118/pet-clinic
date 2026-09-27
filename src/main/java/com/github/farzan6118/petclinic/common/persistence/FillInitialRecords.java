@@ -89,7 +89,7 @@ public class FillInitialRecords implements CommandLineRunner {
         Clinic clinic = new Clinic();
         clinic.setCode(1);
         clinic.setName("Main Clinic");
-        clinic.setAddress(address("Main clinic", "Berlin", "Berlin", "Afrikanische Str.",
+        clinic.setAddress(address("Main clinic", "Berlin", "Berlin", "Afrikaner Str.",
                 1, "12A", 52.52D, 13.4D));
         clinic.setActive(true);
         clinicRepository.save(clinic);
@@ -113,9 +113,9 @@ public class FillInitialRecords implements CommandLineRunner {
         if (ownerRepository.count() != 0) return;
         ownerRepository.saveAll(List.of(
                 owner("Ms.", "Mina", "Rahimi", "200000001", LocalDate.of(1990, 4, 12),
-                        "09120000001", "mina.rahimi@example.com", "Berlin", "Valiasr Street"),
+                        "09120000001", "mina.rahimi@example.com", "Berlin", "Vali Street"),
                 owner("Mr.", "Arman", "Karimi", "200000002", LocalDate.of(1987, 9, 25),
-                        "09120000002", "arman.karimi@example.com", "Hamburg", "Zand Street"),
+                        "09120000002", "arman.karimi@example.com", "Hamburg", "Zara Street"),
                 owner("Ms.", "Niloofar", "Ahmadi", "200000003", LocalDate.of(1995, 1, 8),
                         "09120000003", "niloofar.ahmadi@example.com", "Dusseldorf", "Shahrivar Street")
         ));
@@ -128,11 +128,11 @@ public class FillInitialRecords implements CommandLineRunner {
                 vet("Sara", "Moradi", "100000001",
                         LocalDate.of(1985, 3, 18),
                         "09210000001", "sara.moradi@example.com",
-                        "Berlin", "Mirdamad Boulevard", clinic),
+                        "Berlin", "Your Boulevard", clinic),
                 vet("Reza", "Hosseini", "100000002",
                         LocalDate.of(1982, 11, 2),
                         "09210000002", "reza.hosseini@example.com",
-                        "Hamburg", "Maaliabad Street", clinic),
+                        "Hamburg", "Malibad Street", clinic),
                 vet("Parisa", "Etemadi", "100000003",
                         LocalDate.of(1990, 6, 27),
                         "09210000003", "parisa.etemadi@example.com",
@@ -142,13 +142,27 @@ public class FillInitialRecords implements CommandLineRunner {
 
     private void seedPets() {
         if (petRepository.count() != 0) return;
+
         List<Owner> owners = ownerRepository.findAll();
         List<Species> species = speciesRepository.findAll();
+
         if (owners.size() < 3 || species.size() < 3) return;
+
         petRepository.saveAll(List.of(
-                pet("Luna", "White", "Small black mark", Sex.FEMALE, species.get(0), owners.get(0), LocalDate.of(2021, 5, 12)),
-                pet("Milo", "Orange", "White paws", Sex.MALE, species.get(1), owners.get(1), LocalDate.of(2022, 2, 8)),
-                pet("Coco", "Brown", "Long ears", Sex.FEMALE, species.get(2), owners.get(2), LocalDate.of(2023, 7, 21))
+                pet("Luna", "White", "Small black mark", Sex.FEMALE,
+                        species.get(0), owners.get(0), LocalDate.of(2021, 5, 12)),
+
+                pet("Milo", "Orange", "White paws", Sex.MALE,
+                        species.get(1), owners.get(0), LocalDate.of(2022, 2, 8)),
+
+                pet("Coco", "Brown", "Long ears", Sex.FEMALE,
+                        species.get(2), owners.get(1), LocalDate.of(2023, 7, 21)),
+
+                pet("Cookie", "Red", "Long ears", Sex.MALE,
+                        species.get(2), owners.get(2), LocalDate.of(2020, 2, 10)),
+
+                pet("Cookie", "Red", "Long ears", Sex.FEMALE,
+                        species.get(3), owners.get(2), LocalDate.of(2021, 4, 16))
         ));
     }
 
@@ -171,25 +185,45 @@ public class FillInitialRecords implements CommandLineRunner {
 
     private void seedVetAvailability() {
         if (vetAvailabilityRepository.count() != 0) return;
+
         List<Vet> vets = vetRepository.findAll();
         if (vets.isEmpty()) return;
-        LocalDate tomorrow = LocalDate.now().plusDays(1);
-        LocalDate dayAfter = tomorrow.plusDays(1);
-        vetAvailabilityRepository.saveAll(List.of(
-                availability(vets.get(0), tomorrow.atTime(9, 0), tomorrow.atTime(13, 0)),
-                availability(vets.get(0), dayAfter.atTime(9, 0), dayAfter.atTime(12, 20))
-        ));
-        if (vets.size() > 1) {
-            vetAvailabilityRepository.saveAll(List.of(
-                    availability(vets.get(1), tomorrow.atTime(10, 0), tomorrow.atTime(14, 0)),
-                    availability(vets.get(1), dayAfter.atTime(9, 30), dayAfter.atTime(12, 30))
-            ));
-        }
-        if (vets.size() > 2) {
-            vetAvailabilityRepository.saveAll(List.of(
-                    availability(vets.get(2), tomorrow.atTime(8, 0), tomorrow.atTime(12, 0)),
-                    availability(vets.get(2), dayAfter.atTime(9, 30), dayAfter.atTime(14, 0))
-            ));
+
+        LocalDate startDate = LocalDate.now().minusDays(1);
+
+        int[][] schedules = {
+                {8, 0, 16, 0},
+                {9, 0, 17, 0},
+                {10, 0, 18, 0}
+        };
+
+        for (int vetIndex = 0; vetIndex < vets.size(); vetIndex++) {
+            Vet vet = vets.get(vetIndex);
+
+            int[] schedule = schedules[vetIndex % schedules.length];
+
+            for (int i = 0; i < 7; i++) {
+                LocalDate date = startDate.plusDays(i);
+
+                // Sunday is a day off
+                if (date.getDayOfWeek() == java.time.DayOfWeek.SUNDAY) {
+                    continue;
+                }
+
+                int startHour = schedule[0] + ((i + vetIndex) % 2);
+                int startMinute = ((i + vetIndex) % 2) * 15;
+
+                int endHour = schedule[2] - ((i + vetIndex) % 2);
+                int endMinute = ((i + vetIndex) % 2) * 15;
+
+                vetAvailabilityRepository.save(
+                        availability(
+                                vet,
+                                date.atTime(startHour, startMinute),
+                                date.atTime(endHour, endMinute)
+                        )
+                );
+            }
         }
     }
 
