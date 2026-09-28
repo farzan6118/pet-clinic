@@ -2,36 +2,35 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Veterinary Appointment Canceled</title>
-</head>
-<body style="font-family:Arial,sans-serif;color:#24323d;background:#f4f7f8;padding:24px;">
-<main style="max-width:620px;margin:auto;background:#fff;border:1px solid #d9e2e6;padding:28px;">
-    <h2 style="margin-top:0;color:#a33b3b;">Appointment cancelled</h2>
-    <p>Dear <strong th:text="${vetName}">Dr. Smith</strong>, the following appointment was cancelled.</p>
+    <title>Appointment removed</title></head>
+<body style="margin:0;padding:24px;background:#eef3f5;color:#24323d;font-family:Arial,sans-serif;line-height:1.5;">
+<main style="max-width:620px;margin:auto;background:#ffffff;border:1px solid #cbd9df;padding:28px;">
+    <h2 style="margin-top:0;color:#a33b3b;">Appointment removed from your schedule</h2>
+    <p>Dear <strong th:text="${vetName}">Dr. Smith</strong>,</p>
+    <p>The following appointment has been cancelled and the time slot is available again.</p>
     <table style="width:100%;border-collapse:collapse;margin:22px 0;">
         <tr>
-            <th style="text-align:left;background:#f8eaea;padding:10px;">Pet</th>
-            <td style="padding:10px;border-bottom:1px solid #d9e2e6;" th:text="|${petName} (${petType})|">Jessy (Dog)
+            <th style="text-align:left;background:#f8eaea;padding:10px;">Patient</th>
+            <td style="padding:10px;border-bottom:1px solid #cbd9df;" th:text="|${petName} (${petType})|">Jessy (Dog)
             </td>
         </tr>
         <tr>
             <th style="text-align:left;background:#f8eaea;padding:10px;">Owner</th>
-            <td style="padding:10px;border-bottom:1px solid #d9e2e6;" th:text="${ownerName}">John Doe</td>
+            <td style="padding:10px;border-bottom:1px solid #cbd9df;" th:text="${ownerName}">John Doe</td>
         </tr>
         <tr>
             <th style="text-align:left;background:#f8eaea;padding:10px;">Scheduled time</th>
-            <td style="padding:10px;border-bottom:1px solid #d9e2e6;"
+            <td style="padding:10px;border-bottom:1px solid #cbd9df;"
                 th:text="${#temporals.format(visitDate, 'EEEE, MMMM dd, yyyy HH:mm')}">Scheduled time
             </td>
         </tr>
         <tr>
-            <th style="text-align:left;background:#f8eaea;padding:10px;">Reason</th>
+            <th style="text-align:left;background:#f8eaea;padding:10px;">Cancellation reason</th>
             <td style="padding:10px;" th:text="${reason}">Not provided</td>
         </tr>
     </table>
-    <p>The appointment time is now available for another booking.</p>
-    <p>Best regards,<br>PetClinic Farzan6118</p>
+    <p>No further action is required unless you need to adjust your availability.</p>
+    <p>Clinic operations<br>PetClinic Farzan6118</p>
 </main>
-
 </body>
 </html>

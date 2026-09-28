@@ -1,104 +1,52 @@
 package com.github.farzan6118.petclinic.vet.model;
 
+import com.github.farzan6118.petclinic.clinic.model.Clinic;
+import com.github.farzan6118.petclinic.common.enums.EntityStatus;
 import com.github.farzan6118.petclinic.common.persistence.BaseEntity;
+import com.github.farzan6118.petclinic.person.model.Person;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Audited;
-import org.springframework.util.StringUtils;
+import org.hibernate.annotations.SQLRestriction;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Entity
 @Getter
 @Setter
 @Audited
+@SQLRestriction("entity_status <> 'DELETED'")
 public class Vet extends BaseEntity<Long> {
 
-    @Size(max = 10)
-    private String title;
-
-    @Size(max = 128)
-    @Column(nullable = false)
-    private String firstName;
-
-    @Size(max = 128)
-    @Column(nullable = false)
-    private String lastName;
-
-    @NotBlank
-    @Size(max = 20)
-    @Column(nullable = false, unique = true)
-    private String nationalId;
-
-    @NotBlank
-    @Size(max = 20)
-    @Column(nullable = false, unique = true)
-    private String mobileNumber;
-
-    @Email
-    @NotBlank
-    @Size(max = 128)
-    @Column(nullable = false, unique = true)
-    private String email;
-
-    @OneToOne(mappedBy = "vet", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Profile profile;
+    @OneToOne(cascade = CascadeType.ALL, optional = false, orphanRemoval = true)
+    @JoinColumn(name = "person_id", nullable = false, unique = true)
+    private Person person;
 
     @OneToMany(mappedBy = "vet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VetAvailability> availabilities = new ArrayList<>();
 
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "clinic_id", nullable = false)
+    private Clinic clinic;
+
     public String getFullName() {
-        return Stream.of(firstName, lastName)
-                .filter(StringUtils::hasText)
-                .collect(Collectors.joining(" "));
+        return this.person.getFullName();
     }
 
-    public void updateProfile(
-            String city,
-            String address,
-            LocalDate birthDate,
-            String specialty
-    ) {
-        if (profile == null) {
-            updateProfile(new Profile());
-        }
-        profile.setCity(city);
-        profile.setAddress(address);
-        profile.setBirthDate(birthDate);
-        profile.setSpecialty(specialty);
+    public String getEmail() {
+        return this.person.getProfile().getEmail();
     }
 
-    public void updateProfile(Profile profile) {
-        this.profile = profile;
-        profile.setVet(this);
+    public String getMobileNumber() {
+        return this.person.getProfile().getMobileNumber();
     }
 
-    public void addAvailability(VetAvailability availability) {
-        availabilities.add(availability);
-        availability.setVet(this);
-    }
-
-    public void removeAvailability(VetAvailability availability) {
-        availabilities.remove(availability);
-        availability.setVet(null);
-    }
-
-    public void addAvailability(LocalDate date, LocalTime startTime, LocalTime endTime) {
-        VetAvailability availability = new VetAvailability();
-        LocalDateTime startDateTime = LocalDateTime.of(date, startTime);
-        LocalDateTime endDateTime = LocalDateTime.of(date, endTime);
-        availability.setStartTime(startDateTime);
-        availability.setEndTime(endDateTime);
-        addAvailability(availability);
+    public void setStatus(EntityStatus status) {
+        this.person.getProfile().setEntityStatus(status);
+        this.person.getAddress().setEntityStatus(status);
+        this.person.setEntityStatus(status);
+        this.setEntityStatus(status);
     }
 }

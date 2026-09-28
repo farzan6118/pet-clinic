@@ -1,56 +1,42 @@
 package com.github.farzan6118.petclinic.owner.model;
 
+import com.github.farzan6118.petclinic.common.enums.EntityStatus;
 import com.github.farzan6118.petclinic.common.persistence.BaseEntity;
-import jakarta.persistence.Column;
+import com.github.farzan6118.petclinic.person.model.Person;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Past;
-import jakarta.validation.constraints.Size;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.util.StringUtils;
-
-import java.time.LocalDate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
 @Setter
+@SQLRestriction("entity_status <> 'DELETED'")
 public class Owner extends BaseEntity<Long> {
 
-    @Size(max = 10)
-    private String title;
-
-    @Size(max = 128)
-    private String firstName;
-
-    @Size(max = 128)
-    private String lastName;
-
-    @Size(max = 20)
-    private String nationalId;
-
-    @Past
-    private LocalDate birthDate;
-
-    @NotBlank
-    @Size(max = 20)
-    @Column(nullable = false, unique = true)
-    private String mobileNumber;
-
-    @Email
-    @NotBlank
-    @Column(nullable = false, unique = true)
-    private String email;
-
-    private String city;
-    private String address;
+    @OneToOne(cascade = CascadeType.ALL, optional = false)
+    @JoinColumn(name = "person_id", nullable = false, unique = true)
+    private Person person;
 
     public String getFullName() {
-        return Stream.of(firstName, lastName)
-                .filter(StringUtils::hasText)
-                .collect(Collectors.joining(" "));
+        return this.person.getFullName();
+    }
+
+    public String getEmail() {
+        return this.person.getProfile().getEmail();
+    }
+
+    public String getMobileNumber() {
+        return this.person.getProfile().getMobileNumber();
+    }
+
+    public void setStatus(EntityStatus status) {
+        this.person.getProfile().setEntityStatus(status);
+        this.person.getAddress().setEntityStatus(status);
+        this.person.setEntityStatus(status);
+        this.setEntityStatus(status);
     }
 }

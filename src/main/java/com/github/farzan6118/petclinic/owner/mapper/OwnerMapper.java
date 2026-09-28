@@ -1,53 +1,51 @@
 package com.github.farzan6118.petclinic.owner.mapper;
 
-import com.github.farzan6118.petclinic.owner.dto.request.CreateOwnerRequestDto;
-import com.github.farzan6118.petclinic.owner.dto.request.UpdateOwnerRequestDto;
+import com.github.farzan6118.petclinic.owner.dto.request.OwnerCreateRequestDto;
+import com.github.farzan6118.petclinic.owner.dto.request.OwnerUpdateRequestDto;
 import com.github.farzan6118.petclinic.owner.dto.response.OwnerResponseDto;
 import com.github.farzan6118.petclinic.owner.model.Owner;
+import com.github.farzan6118.petclinic.person.mapper.AddressMapper;
+import com.github.farzan6118.petclinic.person.mapper.PersonMapper;
+import com.github.farzan6118.petclinic.person.mapper.ProfileMapper;
+import com.github.farzan6118.petclinic.person.model.Person;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.Locale;
-
 @Component
+@RequiredArgsConstructor
 public class OwnerMapper {
 
-    public OwnerResponseDto mapToDto(Owner owner) {
+    private final PersonMapper personMapper;
+    private final AddressMapper addressMapper;
+    private final ProfileMapper profileMapper;
+
+    public OwnerResponseDto toDto(Owner owner) {
+        Person person = owner.getPerson();
         return new OwnerResponseDto(
                 owner.getUuid(),
-                owner.getFirstName(),
-                owner.getLastName(),
-                owner.getEmail(),
-                owner.getMobileNumber(),
-                owner.getNationalId(),
-                owner.getBirthDate(),
-                owner.getCity(),
-                owner.getAddress()
+                personMapper.toDto(person),
+                profileMapper.toDto(person.getProfile()),
+                addressMapper.toDto(person.getAddress())
         );
     }
 
-    public void mapToOwner(CreateOwnerRequestDto request, Owner owner) {
-        owner.setFirstName(normalizeName(request.firstName()));
-        owner.setLastName(normalizeName(request.lastName()));
-        owner.setAddress(request.address());
-        owner.setNationalId(request.nationalId());
-        owner.setBirthDate(request.birthDate());
-        owner.setCity(normalizeName(request.city()));
-        owner.setMobileNumber(request.mobileNumber());
-        owner.setEmail(request.email());
+    public Owner toEntity(OwnerCreateRequestDto request) {
+        Owner owner = new Owner();
+        toEntity(request, owner);
+        return owner;
     }
 
-    public void mapToOwner(UpdateOwnerRequestDto request, Owner owner) {
-        owner.setFirstName(normalizeName(request.firstName()));
-        owner.setLastName(normalizeName(request.lastName()));
-        owner.setAddress(request.address());
-        owner.setNationalId(request.nationalId());
-        owner.setBirthDate(request.birthDate());
-        owner.setCity(request.city());
-        owner.setMobileNumber(request.mobileNumber());
-        owner.setEmail(request.email());
+    public void toEntity(OwnerCreateRequestDto request, Owner owner) {
+        Person person = personMapper.toEntity(request.person());
+        person.setProfile(profileMapper.toEntity(request.profile()));
+        person.setAddress(addressMapper.toEntity(request.address()));
+        owner.setPerson(person);
     }
 
-    private String normalizeName(String string) {
-        return string.toLowerCase(Locale.ROOT).trim();
+    public void toEntity(OwnerUpdateRequestDto request, Owner owner) {
+        Person person = owner.getPerson();
+        personMapper.toEntity(request.person(), person);
+        profileMapper.toEntity(request.profile(), person.getProfile());
+        addressMapper.toEntity(request.address(), person.getAddress());
     }
 }

@@ -1,533 +1,206 @@
-# 🐾 Pet Clinic
+# Veterinary Clinic
 
-A modern **veterinary clinic management platform** built with **Java, Spring Boot, PostgreSQL, and React**.
+A backend service for managing veterinary clinic operations. The application exposes a Spring REST API for owners, pets, veterinarians, clinic rooms, veterinarian availability, visits, and visit duration templates. It is built with Java 21, Spring Boot, PostgreSQL, and Maven.
 
-The project is being developed as a backend-first application with a focus on clean architecture, security,
-maintainability, and real-world enterprise backend practices.
+> **Status:** Active development. The React administration interface is planned and is not part of this repository. Review the security and configuration notes below before exposing the service beyond a trusted development environment.
 
-The backend provides the core domain, security, persistence, and REST API capabilities. A dedicated **React.js
-administration panel** will be added to provide the user interface for clinic administrators and staff.
+## Contents
 
-> 🚧 **Project status:** Active development
-> The backend is currently under development. The React administration panel is planned for a future phase.
+- [Capabilities](#capabilities)
+- [Architecture](#architecture)
+- [Technology](#technology)
+- [Requirements](#requirements)
+- [Local setup](#local-setup)
+- [Profiles and configuration](#profiles-and-configuration)
+- [API overview](#api-overview)
+- [Domain and persistence](#domain-and-persistence)
+- [Tests](#tests)
+- [Repository layout](#repository-layout)
+- [Current limitations](#current-limitations)
 
----
+## Capabilities
 
-## 🎯 Project Goals
+- Manage owners and their contact details, pets, species, veterinarians, clinics, rooms, and room types.
+- Manage veterinarian availability and visit duration templates.
+- Book, search, reschedule, cancel, and complete visits.
+- Prevent booking conflicts across veterinarian availability, veterinarian reservations, pet reservations, and room reservations.
+- Create a medical record as part of completing a visit.
+- Send visit notifications using Thymeleaf email templates and Spring Mail.
+- Provide pagination, validation, soft deletion, audit metadata, and selected Hibernate Envers history.
+- Integrate with Keycloak for login and identity operations, Redis for caching infrastructure, and PostgreSQL for persistence.
 
-Pet Clinic is intended to provide a complete management system for veterinary clinics.
+## Architecture
 
-The long-term goal is to support:
-
-* Pet management
-* Owner management
-* Veterinarian management
-* Veterinary visits
-* Medical records
-* Pet types and breeds
-* Appointment management
-* User and role management
-* Clinic administration
-* Audit/history tracking
-* Secure authentication and authorization
-* Administrative dashboards and statistics
-
-The project is also being used as a practical implementation of modern **Spring Boot backend development**, including
-security, persistence, validation, API design, and application architecture.
-
----
-
-## 🏗️ Architecture
-
-The project follows a **backend-first architecture**.
+The code uses a feature-oriented package structure. Controllers define HTTP boundaries and DTOs; services hold application workflows; repositories handle persistence; mappers translate between DTOs and entities. Shared concerns such as exceptions, pagination, auditing, configuration, and value objects live under `common/` and `config/`.
 
 ```text
-┌──────────────────────────────┐
-│        React Admin Panel     │
-│          (Planned)           │
-└──────────────┬───────────────┘
-               │ REST API
-               ▼
-┌──────────────────────────────┐
-│       Spring Boot API        │
-│                              │
-│  Controllers                 │
-│  Services                    │
-│  Domain                      │
-│  Repositories                │
-│  Security                    │
-│  Validation                  │
-└──────────────┬───────────────┘
-               │
-       ┌───────┼────────┐
-       ▼       ▼        ▼
- PostgreSQL  Redis   Keycloak
+Client (Swagger UI or another HTTP client)
+                  |
+                  v
+       Spring MVC REST controllers
+                  |
+                  v
+        Application services
+          /             \
+         v               v
+   Domain entities    Integrations
+         |          Keycloak / email
+         v          Redis / cache
+ Spring Data JPA
+         |
+         v
+     PostgreSQL
 ```
 
-The backend is designed so that the frontend remains independent from the domain and business logic.
+The central scheduling flow lives in `appointment/`. `Visit` and `VetAvailability` both store their interval as the embedded `common.valueobject.DateTimeRange`. Visit APIs continue to accept and return explicit start and end date-times; the embedded object is an internal persistence/domain representation.
 
----
+## Technology
 
-## 🛠️ Technology Stack
+| Area | Technology |
+| --- | --- |
+| Language | Java 21 |
+| Framework | Spring Boot 4.1.1, Spring MVC |
+| Persistence | Spring Data JPA, Hibernate 7, PostgreSQL |
+| Dynamic queries | QueryDSL 5.1.0 (Jakarta) |
+| Security and identity | Spring Security, OAuth2 Resource Server/JWT, Keycloak 26.7.2 |
+| Cache and supporting services | Spring Cache, Redis, Caffeine |
+| Email | Spring Mail, Thymeleaf |
+| API documentation | Springdoc OpenAPI 3.1.0 / Swagger UI |
+| Build and tests | Maven, JUnit 5, Mockito, Spring Boot Test |
 
-### Backend
+## Requirements
 
-| Technology             | Purpose                         |
-|------------------------|---------------------------------|
-| Java 21                | Programming language            |
-| Spring Boot 4.1        | Application framework           |
-| Spring Web             | REST APIs                       |
-| Spring Data JPA        | Data access                     |
-| Hibernate              | ORM                             |
-| Spring Security        | Application security            |
-| OAuth2 Resource Server | JWT-based API security          |
-| Keycloak               | Identity and access management  |
-| PostgreSQL             | Relational database             |
-| Redis                  | Caching / distributed data      |
-| Redisson               | Redis integration               |
-| Spring Validation      | Request validation              |
-| Spring Mail            | Email capabilities              |
-| Springdoc OpenAPI      | API documentation               |
-| Maven                  | Build and dependency management |
-| Docker Compose         | Local infrastructure            |
+- JDK 21
+- PostgreSQL (the `home` profile expects database `pet_clinic` on `localhost:5432`)
+- Maven, or the included Maven Wrapper (`mvnw` / `mvnw.cmd`)
+- Redis and Keycloak for their related runtime features
+- Mailpit or another SMTP server for local email delivery (the included compose resource starts Mailpit)
 
-### Frontend
+The application uses Spring Boot Docker Compose integration for `src/main/resources/docker/mailpit-docker-compose.yml`. That compose file provides Mailpit; it does not provision PostgreSQL, Redis, or Keycloak.
 
-The administration panel is planned to be built with:
+## Local setup
 
-* React.js
-* JavaScript / TypeScript
-* REST API integration
-* Modern component-based UI
+1. Create a PostgreSQL database named `pet_clinic` and configure the profile's database connection.
+2. Start any required local services. Configure Keycloak at the issuer URL and realm expected by the selected profile; start Redis if using cache-backed features. Mailpit is configured through the application's Docker Compose integration.
+3. Set profile-specific values and secrets through environment variables or a local, untracked configuration file. Never commit credentials.
+4. From the repository root, compile and test:
 
-> The React application is intentionally planned as a separate phase so that the backend API and domain model can be
-> developed independently.
+   ```bash
+   ./mvnw test
+   ```
 
----
+   On Windows PowerShell:
 
-## 🔐 Security
+   ```powershell
+   .\mvnw.cmd test
+   ```
 
-Security is an important part of the project architecture.
+5. Start the service:
 
-The backend is being designed around:
+   ```bash
+   ./mvnw spring-boot:run
+   ```
 
-* Spring Security
-* OAuth2 Resource Server
-* JWT authentication
-* Keycloak
-* Role-based access control (RBAC)
-* Permission-based authorization
-* Secure API endpoints
-* Validation of incoming requests
+   On Windows PowerShell:
 
-The goal is to keep authentication and authorization responsibilities clearly separated from business logic.
+   ```powershell
+   .\mvnw.cmd spring-boot:run
+   ```
 
----
+The application listens on port `8010` by default. Maven activates the `home` profile by default. To select `company`, use `./mvnw -Pcompany spring-boot:run` (or `mvnw.cmd -Pcompany spring-boot:run` on Windows).
 
-## 🐕 Core Domain
+Swagger UI is available at `/swagger-ui/index.html`; the OpenAPI document is at `/v3/api-docs` when the application is running.
 
-The application is centered around the following concepts:
+### Seed data
+
+`common.persistence.FillInitialRecords` inserts initial duration templates, species, a clinic, room types, owners, veterinarians, pets, rooms, and future veterinarian availability when the corresponding repositories are empty. Availability is generated relative to the current date. The seed data is intended for development and demonstration, not production provisioning.
+
+## Profiles and configuration
+
+Configuration is in:
 
 ```text
-Owner
-  │
-  └─── Pet
-         │
-         ├── Pet Type
-         │
-         └── Visits
-                │
-                ├── Veterinarian
-                └── Medical Information
+src/main/resources/application.yaml          shared settings and default port
+src/main/resources/application-home.yaml     local development settings
+src/main/resources/application-company.yaml  company environment settings
 ```
 
-The domain will evolve as the backend implementation progresses.
+The profiles configure PostgreSQL, Keycloak issuer/client settings, Redis, SMTP, clinic hours, and API docs. Review the files and replace local example values with environment-specific settings before running the application. The current profile YAML contains inline database and Keycloak credentials; treat them as development-only and move secrets to environment variables or an external secret store.
 
-Planned areas include:
+Hibernate currently uses `ddl-auto: update`. Flyway settings are commented out and there are no active schema migration scripts. This is convenient for development but does not provide a reviewed, repeatable production migration process.
 
-### Owners
+## API overview
 
-Manage information about pet owners and their pets.
+All API routes use the `/api` prefix. Request and response bodies use DTOs; persistence entities are not intended to be exposed directly.
 
-### Pets
+| Resource | Base route | Main operations |
+| --- | --- | --- |
+| Authentication | `/api/auth/login` | Login |
+| User identity | `/api/user` | Current user (`/me`) |
+| Owners | `/api/owners` | Create, update, soft-delete, fetch, paginate, list an owner's pets |
+| Pets | `/api/pets` | Create, update, soft-delete, fetch, paginate |
+| Species | `/api/species` | Create, update, soft-delete, fetch, paginate, list |
+| Veterinarians | `/api/vets` | Create, update, soft-delete, fetch, paginate, list |
+| Veterinarian availability | `/api/vets/{vetUuid}/availabilities` | Create, update, soft-delete, paginate |
+| Clinics | `/api/clinics` | Create, update, soft-delete, fetch, paginate, list |
+| Rooms | `/api/rooms` | Create, update, soft-delete, fetch, paginate, list |
+| Room types | `/api/room-types` | Create, update, soft-delete, fetch, paginate, list |
+| Visits | `/api/visits` | Book, reschedule, cancel, complete, fetch, paginate, advanced search |
+| Duration templates | `/api/duration-templates` | Create, update, soft-delete, fetch, paginate, list |
 
-Manage:
+Visit routes include `POST /api/visits`, `PUT /api/visits/{uuid}`, `DELETE /api/visits/{uuid}`, `PATCH /api/visits/{uuid}/complete`, `GET /api/visits/{uuid}`, `GET /api/visits/page`, and `GET /api/visits/search`. Consult Swagger UI or controller DTOs for request fields, response shapes, validation rules, and query parameters.
 
-* Name
-* Pet type
-* Breed
-* Birth information
-* Owner
-* Medical information
-* Status
-
-### Veterinarians
-
-Manage veterinary staff and their professional information.
-
-### Visits
-
-Manage interactions between pets and veterinarians, including:
-
-* Visit date/time
-* Veterinarian
-* Pet
-* Reason for visit
-* Medical notes
-* Treatment information
-
-### Administration
-
-Provide administrative capabilities for managing:
-
-* Users
-* Roles
-* Permissions
-* Owners
-* Pets
-* Veterinarians
-* Visits
-* Clinic configuration
-
----
-
-## 📊 Auditing
-
-The application uses Spring Data auditing for common entity metadata such as:
-
-* Creation timestamp
-* Last modification timestamp
-* Creator
-* Last modifier
-* Record status
-
-Hibernate Envers can be selectively enabled for entities where historical changes are important.
-
-This allows the project to avoid creating unnecessary audit tables for every entity.
-
----
-
-## 📚 API Documentation
-
-The backend uses **OpenAPI** for API documentation.
-
-Once the application is running, the API documentation will be available through the configured Springdoc/OpenAPI
-endpoints.
-
-The exact endpoints and API contract will evolve together with the backend implementation.
-
----
-
-## ⚙️ Configuration
-
-The application supports environment-specific configuration through Spring profiles.
-
-Current profiles include:
+## Domain and persistence
 
 ```text
-home
-company
+Owner ──< Pet ──< Visit >── Vet ──< VetAvailability
+                         |
+                         └── optional Room ── Clinic
+                                         └── RoomType
+
+Visit ── optional MedicalRecord
+Owner / Vet ── Person ── Profile
+                       └── Address
 ```
 
-Example configuration structure:
+- `DateTimeRange` is a JPA embeddable with required start and end timestamps, duration/date/time helpers, validity checks, same-day checks, and overlap checks.
+- `Visit` scheduling and rescheduling require a positive, same-day interval. Completion changes the end timestamp and status.
+- `VisitServiceCommandImpl` checks clinic opening hours and closed days, veterinarian availability, and overlapping veterinarian, pet, and room reservations. It locks the veterinarian during booking and locks an existing visit during rescheduling/completion.
+- `FillInitialRecords` is a `CommandLineRunner` and only seeds each data group when its repository is empty.
+- Common entity persistence includes UUIDs, status/soft-delete behavior, and audit timestamps. Some entities also use Hibernate Envers.
+- Medical-record creation is connected to visit completion. A standalone medical-record history API is not currently exposed.
+
+## Tests
+
+Run the full test suite with `./mvnw test` or `mvnw.cmd test`. The suite includes unit tests using JUnit 5 and Mockito plus Spring context tests. Spring context tests use the configured local PostgreSQL database, so PostgreSQL and suitable profile configuration must be available. Some integration behaviors, such as concurrent booking against a real database, need dedicated tests.
+
+## Repository layout
 
 ```text
+src/main/java/com/github/farzan6118/petclinic/
+  appointment/      visits, scheduling, duration templates, search
+  auth/             login and current-user endpoints
+  clinic/           clinics, rooms, room types
+  common/            shared DTOs, enums, exceptions, persistence, value objects
+  config/             application, security, cache, OpenAPI configuration
+  infrastructure/     Keycloak and email integrations
+  owner/              owner domain and API
+  person/             shared person, profile, and address data
+  pet/                pets, species, medical records
+  vet/                veterinarians and availability
 src/main/resources/
-├── application.yml
-├── application-home.yml
-└── application-company.yml
+  application*.yaml   profile configuration
+  templates/email/    notification templates
+  docker/             local Mailpit compose resource
+src/test/java/         unit and Spring context tests
 ```
 
-Sensitive configuration such as:
-
-* Database credentials
-* Keycloak credentials
-* Redis configuration
-* Mail credentials
-* Secrets
-
-should be provided through environment variables or local configuration and **must not be committed to the repository**.
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-Make sure you have the following installed:
-
-* Java 21+
-* Git
-* Maven (or use the included Maven Wrapper)
-* Docker
-* Docker Compose
-* PostgreSQL
-
-Additional infrastructure such as Keycloak and Redis may be required depending on the active application profile.
-
----
-
-### Clone the Repository
-
-```bash
-git clone https://github.com/farzan6118/pet-clinic.git
-
-cd pet-clinic
-```
-
----
-
-### Build the Project
-
-Using Maven Wrapper:
-
-```bash
-./mvnw clean verify
-```
-
-On Windows:
-
-```powershell
-mvnw.cmd clean verify
-```
-
----
-
-### Run the Application
-
-Using the default profile:
-
-```bash
-./mvnw spring-boot:run
-```
-
-On Windows:
-
-```powershell
-mvnw.cmd spring-boot:run
-```
-
-To explicitly select a profile:
-
-```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=home
-```
-
-or:
-
-```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=company
-```
-
----
-
-## 🐳 Docker
-
-Docker Compose is used to simplify local infrastructure setup.
-
-The project includes Spring Boot Docker Compose integration, allowing infrastructure services to be managed alongside
-local development.
-
-As the infrastructure evolves, the required services will be documented here.
-
----
-
-## 🧪 Testing
-
-Testing is an important part of the project.
-
-The backend is intended to include:
-
-* Unit tests
-* Service-layer tests
-* Repository tests
-* Controller/API tests
-* Security tests
-* Integration tests
-
-Run the test suite with:
-
-```bash
-./mvnw test
-```
-
----
-
-## 📁 Project Structure
-
-The project is currently organized as a standard Spring Boot application.
-
-The architecture will evolve as the domain grows, with responsibilities separated between:
-
-```text
-src/
-└── main/
-    ├── java/
-    │   └── com.github.farzan6118.petclinic/
-    │       ├── controller/
-    │       ├── service/
-    │       ├── repository/
-    │       ├── entity/
-    │       ├── dto/
-    │       ├── mapper/
-    │       ├── security/
-    │       └── config/
-    │
-    └── resources/
-        ├── application.yml
-        └── application-*.yml
-```
-
-The exact package structure may change as the application moves toward a more mature architecture.
-
----
-
-## 🖥️ React Administration Panel
-
-A React-based administration panel is planned as the next major frontend phase.
-
-The administration panel will consume the Spring Boot REST API and provide interfaces for clinic staff.
-
-Planned features include:
-
-* Dashboard
-* Owner management
-* Pet management
-* Veterinarian management
-* Visit management
-* User management
-* Role and permission management
-* Search and filtering
-* Pagination
-* Statistics
-* Authentication
-* Authorization-aware navigation
-
-The frontend will remain decoupled from the backend so that the REST API can also support other clients in the future.
-
----
-
-## 🗺️ Roadmap
-
-### Phase 1 — Backend Foundation
-
-* [x] Spring Boot project
-* [x] Java 21
-* [x] Maven
-* [x] PostgreSQL integration
-* [x] Spring Data JPA
-* [x] Spring Security foundation
-* [x] OAuth2 Resource Server
-* [x] Keycloak integration foundation
-* [x] Redis / Redisson integration
-* [x] Validation
-* [x] OpenAPI integration
-* [ ] Complete domain model
-* [ ] Database migrations
-* [ ] Complete RBAC implementation
-* [ ] REST API implementation
-* [ ] Exception handling
-* [ ] Comprehensive testing
-
-### Phase 2 — Veterinary Domain
-
-* [ ] Owners
-* [ ] Pets
-* [ ] Pet types
-* [ ] Breeds
-* [ ] Veterinarians
-* [ ] Visits
-* [ ] Medical records
-* [ ] Appointment management
-
-### Phase 3 — Administration API
-
-* [ ] User management
-* [ ] Role management
-* [ ] Permission management
-* [ ] Audit/history
-* [ ] Dashboard APIs
-* [ ] Statistics
-* [ ] Advanced search and filtering
-
-### Phase 4 — React Administration Panel
-
-* [ ] React application
-* [ ] Authentication
-* [ ] Protected routes
-* [ ] Dashboard
-* [ ] Owner management UI
-* [ ] Pet management UI
-* [ ] Veterinarian management UI
-* [ ] Visit management UI
-* [ ] User/RBAC management UI
-* [ ] Responsive design
-
-### Phase 5 — Production Readiness
-
-* [ ] Dockerized deployment
-* [ ] CI/CD
-* [ ] Integration testing
-* [ ] Observability
-* [ ] Logging improvements
-* [ ] Health checks
-* [ ] Production configuration
-* [ ] Security hardening
-* [ ] Performance optimization
-
----
-
-## 🎓 Project Focus
-
-This project is not intended to be just a CRUD application.
-
-The main technical goals are to demonstrate practical backend engineering concepts such as:
-
-* Clean code
-* SOLID principles
-* Layered architecture
-* REST API design
-* Domain modeling
-* JPA/Hibernate
-* Database design
-* Transaction management
-* Authentication and authorization
-* RBAC
-* Caching
-* Validation
-* Exception handling
-* Auditing
-* Testing
-* API documentation
-* Containerized development
-
-The project will continue to evolve as new backend and frontend capabilities are implemented.
-
----
-
-## 📌 Project Status
-
-**Current status: Backend development**
-
-The project is currently focused on establishing the backend architecture, domain model, persistence layer, security
-model, and REST API.
-
-The React administration panel will be introduced after the backend foundation and API contracts become sufficiently
-mature.
-
----
-
-## 📄 License
-
-License information will be added as the project approaches its first public release.
-
----
-
-## 👨‍💻 Author
-
-**Farzan Saketi**
-
-Java / Spring Backend Developer
-
-GitHub:
-https://github.com/farzan6118
+## Current limitations
+
+- **Security is not enforced globally.** `WebSecurityConfig` permits all requests. The OAuth2/JWT and Keycloak integrations do not mean API routes are protected; implement and test endpoint authorization before deployment.
+- **Secrets are present in profile configuration.** Replace them with environment-provided secrets and rotate any credentials that have been shared outside the intended local environment.
+- **Schema updates are not versioned.** Hibernate `update` is enabled and Flyway is not active; add and review migrations before production use.
+- **Frontend is not included.** This repository contains the backend service only.
+- **Development seed data uses sample identities and addresses.** It is not production or customer data.
+
+For deeper implementation notes and maintenance guidance, see [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md). That file is working context for development sessions; this README is the standalone project guide.

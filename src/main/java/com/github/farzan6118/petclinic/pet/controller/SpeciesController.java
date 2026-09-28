@@ -1,17 +1,14 @@
 package com.github.farzan6118.petclinic.pet.controller;
 
-import com.github.farzan6118.petclinic.common.dto.request.PageRequestDto;
-import com.github.farzan6118.petclinic.common.dto.request.SortRequestDto;
+import com.github.farzan6118.petclinic.common.dto.request.PageAndSortRequestDto;
 import com.github.farzan6118.petclinic.common.dto.response.PageResponseDto;
+import com.github.farzan6118.petclinic.common.dto.response.UuidAndTitleResponseDto;
 import com.github.farzan6118.petclinic.pet.dto.request.CreateSpeciesRequestDto;
 import com.github.farzan6118.petclinic.pet.dto.request.UpdateSpeciesRequestDto;
 import com.github.farzan6118.petclinic.pet.dto.response.SpeciesResponseDto;
 import com.github.farzan6118.petclinic.pet.service.SpeciesService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -34,40 +31,32 @@ public class SpeciesController {
     }
 
     @GetMapping("/page")
-    public ResponseEntity<PageResponseDto<SpeciesResponseDto>> findAll(PageRequestDto page, SortRequestDto sort) {
-        return ResponseEntity.ok(speciesService.findAll(page, sort));
+    public ResponseEntity<PageResponseDto<SpeciesResponseDto>> findAll(
+            @ModelAttribute @Valid PageAndSortRequestDto requestDto) {
+        return ResponseEntity.ok(speciesService.findAll(requestDto));
     }
 
     @GetMapping
-    public ResponseEntity<List<SpeciesResponseDto>> findAll() {
-        return ResponseEntity.ok(speciesService.findAll());
-    }
-
-
-    private Pageable getPageable(PageRequestDto page, SortRequestDto sort) {
-        return PageRequest.of(
-                page.pageNumber(),
-                page.pageSize(),
-                Sort.by(sort.sortDirection(), sort.sortBy())
-        );
+    public ResponseEntity<List<UuidAndTitleResponseDto>> findAllIdAndTitle() {
+        return ResponseEntity.ok(speciesService.findAllIdAndTitle());
     }
 
     @PostMapping
-    public ResponseEntity<Void> create(@Valid @RequestBody CreateSpeciesRequestDto request) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public void create(@Valid @RequestBody CreateSpeciesRequestDto request) {
         speciesService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PutMapping("/{uuid}")
-    public ResponseEntity<Void> update(@PathVariable UUID uuid,
-                                       @Valid @RequestBody UpdateSpeciesRequestDto request) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void update(@PathVariable UUID uuid,
+                       @Valid @RequestBody UpdateSpeciesRequestDto request) {
         speciesService.update(uuid, request);
-        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{uuid}")
-    public ResponseEntity<Void> delete(@PathVariable UUID uuid) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable UUID uuid) {
         speciesService.delete(uuid);
-        return ResponseEntity.noContent().build();
     }
 }

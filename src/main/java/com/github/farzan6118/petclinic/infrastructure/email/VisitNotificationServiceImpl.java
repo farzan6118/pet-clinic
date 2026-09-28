@@ -1,9 +1,9 @@
 package com.github.farzan6118.petclinic.infrastructure.email;
 
+import com.github.farzan6118.petclinic.appointment.model.Visit;
 import com.github.farzan6118.petclinic.owner.model.Owner;
 import com.github.farzan6118.petclinic.pet.model.Pet;
 import com.github.farzan6118.petclinic.vet.model.Vet;
-import com.github.farzan6118.petclinic.visit.model.Visit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -109,15 +109,15 @@ public class VisitNotificationServiceImpl implements VisitNotificationService {
 
     @Async
     @Override
-    public void notifyRescheduleVisitParticipants(Visit visit, Pet pet, Vet vet, LocalDateTime oldVisitDate) {
+    public void notifyRescheduleVisitParticipants(
+            LocalDateTime oldVisitDate, Visit visit, Pet pet, Vet vet, LocalDateTime newVisitStart) {
         Owner owner = pet.getOwner();
-
         try {
             emailService.sendVetVisitRescheduledEmail(
                     vet.getEmail(),
                     vet.getFullName(),
                     oldVisitDate,
-                    null,
+                    newVisitStart,
                     pet.getName(),
                     pet.getSpecies().getName(),
                     owner.getFullName()
@@ -128,7 +128,7 @@ public class VisitNotificationServiceImpl implements VisitNotificationService {
                     owner.getFullName(),
                     pet.getName(),
                     oldVisitDate,
-                    null,
+                    newVisitStart,
                     vet.getFullName()
             );
 

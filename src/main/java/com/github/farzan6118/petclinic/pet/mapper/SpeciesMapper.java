@@ -1,5 +1,6 @@
 package com.github.farzan6118.petclinic.pet.mapper;
 
+import com.github.farzan6118.petclinic.common.dto.response.UuidAndTitleResponseDto;
 import com.github.farzan6118.petclinic.pet.dto.request.CreateSpeciesRequestDto;
 import com.github.farzan6118.petclinic.pet.dto.request.UpdateSpeciesRequestDto;
 import com.github.farzan6118.petclinic.pet.dto.response.SpeciesResponseDto;
@@ -11,21 +12,21 @@ import java.util.Locale;
 @Component
 public class SpeciesMapper {
 
-    public void mapToSpecies(CreateSpeciesRequestDto request, Species species) {
-        species.setName(normalizeName(request.name()));
-        species.setCode(request.code());
+    public void toEntity(CreateSpeciesRequestDto request, Species species) {
+        species.setName(toLower(request.name()));
+        species.setCode(toUpper(request.code()));
         species.setOrigin(request.origin());
         species.setDescription(request.description());
     }
 
-    public void mapToSpecies(UpdateSpeciesRequestDto request, Species species) {
-        species.setName(normalizeName(request.name()));
-        species.setCode(request.code());
+    public void toEntity(UpdateSpeciesRequestDto request, Species species) {
+        species.setName(toLower(request.name()));
+        species.setCode(toUpper(request.code()));
         species.setOrigin(request.origin());
         species.setDescription(request.description());
     }
 
-    public SpeciesResponseDto mapToDto(Species species) {
+    public SpeciesResponseDto toDto(Species species) {
         return new SpeciesResponseDto(
                 species.getUuid(),
                 species.getName(),
@@ -35,7 +36,18 @@ public class SpeciesMapper {
         );
     }
 
-    private String normalizeName(String string) {
+    public UuidAndTitleResponseDto toUuidAndTitle(Species species) {
+        return new UuidAndTitleResponseDto(
+                species.getUuid(),
+                species.getName()
+        );
+    }
+
+    private String toUpper(String string) {
         return string.toUpperCase(Locale.ROOT).trim();
+    }
+
+    private String toLower(String string) {
+        return string.toLowerCase(Locale.ROOT).trim();
     }
 }

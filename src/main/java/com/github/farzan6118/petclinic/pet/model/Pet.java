@@ -7,12 +7,14 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDate;
 
 @Entity
 @Getter
 @Setter
+@SQLRestriction("entity_status <> 'DELETED'")
 public class Pet extends BaseEntity<Long> {
 
     @Size(max = 128)
@@ -21,6 +23,7 @@ public class Pet extends BaseEntity<Long> {
 
     @Size(max = 64)
     private String color;
+
     private String marks;
 
     @Enumerated(EnumType.STRING)
@@ -34,6 +37,7 @@ public class Pet extends BaseEntity<Long> {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     private Owner owner;
+
     private LocalDate birthDate;
 
 }

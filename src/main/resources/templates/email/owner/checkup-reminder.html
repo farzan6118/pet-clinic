@@ -2,35 +2,23 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Periodic Checkup Reminder</title>
+    <title>Checkup reminder</title>
 </head>
-<body>
-
-<h2>Periodic Checkup Reminder</h2>
-
-<p>
-    Dear Pet Owner,
-</p>
-
-<p>
-    This is a reminder that your pet
-    <strong th:text="${petName}">Jessy</strong>
-    is due for a periodic checkup.
-</p>
-
-<p>
-    <strong>Checkup date:</strong>
-    <span th:text="${#temporals.format(checkupDate, 'EEEE, MMMM dd, yyyy HH:mm')}">Thursday, August 20, 2026 10:00</span>
-</p>
-
-<p>
-    Please make sure to schedule the necessary veterinary checkup.
-</p>
-
-<p>
-    Best regards,<br>
-    PetClinic Farzan6118
-</p>
-
+<body style="margin:0;padding:24px;background:#f4f7f8;color:#24323d;font-family:Arial,sans-serif;line-height:1.5;">
+<main style="max-width:620px;margin:auto;background:#ffffff;border:1px solid #d9e2e6;padding:28px;">
+    <h2 style="margin-top:0;color:#176b87;">Checkup reminder</h2>
+    <p>Dear pet owner,</p>
+    <p>
+        <strong th:text="${petName}">Jessy</strong> is due for a periodic checkup.
+    </p>
+    <p>
+        <strong>Recommended date:</strong>
+        <span th:text="${#temporals.format(checkupDate, 'EEEE, MMMM dd, yyyy HH:mm')}">
+            Thursday, August 20, 2026 10:00
+        </span>
+    </p>
+    <p>Please contact the clinic to confirm or arrange this appointment.</p>
+    <p>Warm regards,<br>PetClinic Farzan6118</p>
+</main>
 </body>
 </html>

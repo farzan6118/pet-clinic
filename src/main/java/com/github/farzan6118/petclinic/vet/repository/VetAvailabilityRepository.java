@@ -1,6 +1,8 @@
 package com.github.farzan6118.petclinic.vet.repository;
 
 import com.github.farzan6118.petclinic.vet.model.VetAvailability;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,8 +19,8 @@ public interface VetAvailabilityRepository extends JpaRepository<VetAvailability
             select case when count(a) > 0 then true else false end
             from VetAvailability a
             where a.vet.uuid = :vetUuid
-              and a.startTime <= :startTime
-              and a.endTime >= :endTime
+              and a.timeRange.startDateTime <= :startTime
+              and a.timeRange.endDateTime >= :endTime
               and a.active = true
             """)
     boolean existsCoveringTime(
@@ -33,8 +35,8 @@ public interface VetAvailabilityRepository extends JpaRepository<VetAvailability
                 SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END
                 FROM VetAvailability a
                 WHERE a.vet.uuid = :vetUuid
-                  AND a.endTime > :startTime
-                  AND a.startTime < :endTime
+                  AND a.timeRange.startDateTime > :startTime
+                  AND a.timeRange.endDateTime < :endTime
                   AND a.active = true
             """)
     boolean existsOverlappingAvailability(
@@ -48,8 +50,8 @@ public interface VetAvailabilityRepository extends JpaRepository<VetAvailability
                 FROM VetAvailability a
                 WHERE a.vet.uuid = :vetUuid
                   AND a.uuid <> :availabilityUuid
-                  AND a.endTime > :startTime
-                  AND a.startTime < :endTime
+                  AND a.timeRange.startDateTime > :startTime
+                  AND a.timeRange.endDateTime < :endTime
                   AND a.active = true
             """)
     boolean existsOverlappingAvailabilityForUpdate(
@@ -61,5 +63,17 @@ public interface VetAvailabilityRepository extends JpaRepository<VetAvailability
 
     Optional<VetAvailability> findByUuidAndVetUuid(UUID uuid, UUID vetUuid);
 
-    List<VetAvailability> findAllByVetUuid(UUID vetUuid);
+    Page<VetAvailability> findAllByVetUuid(UUID vetUuid, Pageable pageable);
+
+    Optional<VetAvailability> findByUuid(UUID uuid);
+
+    @Query("""
+                SELECT va
+                FROM VetAvailability va
+                WHERE va.timeRange.startDateTime >= :startDateTime
+                  AND va.timeRange.endDateTime < :endDateTime
+                  AND va.entityStatus = 'ACTIVE'
+                  AND va.active = true
+            """)
+    List<VetAvailability> findAllByTimeRange(LocalDateTime startDateTime, LocalDateTime endDateTime);
 }

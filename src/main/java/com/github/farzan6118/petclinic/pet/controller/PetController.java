@@ -1,7 +1,10 @@
 package com.github.farzan6118.petclinic.pet.controller;
 
+import com.github.farzan6118.petclinic.common.dto.request.PageAndSortRequestDto;
+import com.github.farzan6118.petclinic.common.dto.response.PageResponseDto;
 import com.github.farzan6118.petclinic.pet.dto.request.CreatePetRequestDto;
 import com.github.farzan6118.petclinic.pet.dto.request.UpdatePetRequestDto;
+import com.github.farzan6118.petclinic.pet.dto.response.MedicalRecordResponseDto;
 import com.github.farzan6118.petclinic.pet.dto.response.PetResponseDto;
 import com.github.farzan6118.petclinic.pet.service.PetService;
 import jakarta.validation.Valid;
@@ -11,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @Validated
@@ -27,30 +29,36 @@ public class PetController {
         return ResponseEntity.ok(petService.getByUuid(uuid));
     }
 
-    @GetMapping
-    public ResponseEntity<List<PetResponseDto>> findAll() {
-        return ResponseEntity.ok(petService.findAll());
+    @GetMapping("/{uuid}/medical-record")
+    public ResponseEntity<MedicalRecordResponseDto> getMedicalRecordByPetUuid(@PathVariable UUID uuid) {
+        return ResponseEntity.ok(petService.getMedicalRecordByPetUuid(uuid));
+    }
+
+    @GetMapping("/page")
+    public ResponseEntity<PageResponseDto<PetResponseDto>> findAll(
+            @ModelAttribute @Valid PageAndSortRequestDto requestDto) {
+        return ResponseEntity.ok(petService.findAll(requestDto));
     }
 
     @PostMapping
-    public ResponseEntity<Void> create(@Valid @RequestBody CreatePetRequestDto request) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public void create(@Valid @RequestBody CreatePetRequestDto request) {
         petService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PutMapping("/{uuid}")
-    public ResponseEntity<Void> update(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void update(
             @PathVariable UUID uuid,
             @Valid @RequestBody UpdatePetRequestDto request
     ) {
         petService.update(uuid, request);
-        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{uuid}")
-    public ResponseEntity<Void> delete(@PathVariable UUID uuid) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable UUID uuid) {
         petService.delete(uuid);
-        return ResponseEntity.noContent().build();
     }
 }
 

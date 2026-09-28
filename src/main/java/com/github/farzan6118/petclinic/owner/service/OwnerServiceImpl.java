@@ -1,23 +1,24 @@
 package com.github.farzan6118.petclinic.owner.service;
 
+import com.github.farzan6118.petclinic.common.dto.request.PageAndSortRequestDto;
+import com.github.farzan6118.petclinic.common.dto.response.PageResponseDto;
 import com.github.farzan6118.petclinic.common.enums.EntityStatus;
-import com.github.farzan6118.petclinic.common.exception.EmailAlreadyExistsException;
-import com.github.farzan6118.petclinic.common.exception.GenericValidationException;
-import com.github.farzan6118.petclinic.common.exception.PhoneAlreadyExistsException;
+import com.github.farzan6118.petclinic.common.exception.ConflictException;
 import com.github.farzan6118.petclinic.common.exception.ResourceNotFoundException;
-import com.github.farzan6118.petclinic.owner.dto.request.CreateOwnerRequestDto;
-import com.github.farzan6118.petclinic.owner.dto.request.UpdateOwnerRequestDto;
+import com.github.farzan6118.petclinic.common.mapper.PageMapper;
+import com.github.farzan6118.petclinic.owner.dto.request.OwnerCreateRequestDto;
+import com.github.farzan6118.petclinic.owner.dto.request.OwnerUpdateRequestDto;
 import com.github.farzan6118.petclinic.owner.dto.response.OwnerResponseDto;
 import com.github.farzan6118.petclinic.owner.mapper.OwnerMapper;
 import com.github.farzan6118.petclinic.owner.model.Owner;
 import com.github.farzan6118.petclinic.owner.repository.OwnerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -28,70 +29,58 @@ public class OwnerServiceImpl implements OwnerService {
 
     private final OwnerRepository ownerRepository;
     private final OwnerMapper ownerMapper;
+    private final PageMapper pageMapper;
 
     @Override
     public OwnerResponseDto getByUuid(UUID uuid) {
         Owner owner = this.getEntityByUuid(uuid);
-        return ownerMapper.mapToDto(owner);
+        return ownerMapper.toDto(owner);
     }
 
     @Override
-    public List<OwnerResponseDto> findAll() {
-        return ownerRepository.findAll()
-                .stream()
-                .map(ownerMapper::mapToDto)
-                .toList();
+    public PageResponseDto<OwnerResponseDto> findAll(PageAndSortRequestDto requestDto) {
+        Pageable pageable = pageMapper.getPageable(requestDto);
+        Page<Owner> ownerPage = ownerRepository.findAll(pageable);
+        return pageMapper.toPageResponse(ownerPage, ownerMapper::toDto);
     }
 
+    @Override
     @Transactional
-    @Override
-    public void create(CreateOwnerRequestDto request) {
-        Owner owner = new Owner();
-        validateBirthDate(request.birthDate());
-        validateUniqueContactInfo(request.mobileNumber(), request.email());
-        ownerMapper.mapToOwner(request, owner);
+    public void create(OwnerCreateRequestDto request) {
+        validateUniqueContactInfo(request.profile().mobileNumber(), request.profile().email());
+        Owner owner = ownerMapper.toEntity(request);
         ownerRepository.save(owner);
-        log.info("owner created");
+    }
+
+    @Override
+    @Transactional
+    public void update(UUID uuid, OwnerUpdateRequestDto request) {
+        Owner owner = getEntityByUuid(uuid);
+        validateEmailUniqueness(request.profile().email(), uuid);
+        validateMobileNumberUniqueness(request.profile().mobileNumber(), uuid);
+        ownerMapper.toEntity(request, owner);
     }
 
     private void validateUniqueContactInfo(String mobile, String email) {
 
-        if (ownerRepository.existsByEmail(email)) {
-            throw new EmailAlreadyExistsException("email exists", "email " + email + " already exists");
+        if (ownerRepository.existsByPerson_profile_Email(email)) {
+            throw new ConflictException("An owner with this email already exists", "Duplicate owner email");
         }
 
-        if (ownerRepository.existsByMobileNumber(mobile)) {
-            throw new PhoneAlreadyExistsException("mobile exists", "mobile " + mobile + " already exists");
+        if (ownerRepository.existsByPerson_profile_MobileNumber(mobile)) {
+            throw new ConflictException("An owner with this mobile number already exists", "Duplicate owner mobile number");
         }
-    }
-
-    @Transactional
-    @Override
-    public void update(UUID uuid, UpdateOwnerRequestDto request) {
-        validateBirthDate(request.birthDate());
-        validateEmailUniqueness(request.email(), uuid);
-        validateTelephoneUniqueness(request.mobileNumber(), uuid);
-        Owner owner = this.getEntityByUuid(uuid);
-        ownerMapper.mapToOwner(request, owner);
-        ownerRepository.save(owner);
-        log.info("owner updated");
     }
 
     private void validateEmailUniqueness(String email, UUID uuid) {
-        if (ownerRepository.existsByEmailAndUuidNot(email, uuid)) {
-            throw new ResourceNotFoundException("owner with this email already exists");
+        if (ownerRepository.existsByPerson_profile_EmailAndUuidNot(email, uuid)) {
+            throw new ConflictException("An owner with this email already exists", "Duplicate owner email");
         }
     }
 
-    private void validateTelephoneUniqueness(String telephone, UUID uuid) {
-        if (ownerRepository.existsByMobileNumberAndUuidNot(telephone, uuid)) {
-            throw new ResourceNotFoundException("owner with this mobileNumber already exists");
-        }
-    }
-
-    private void validateBirthDate(LocalDate birthDate) {
-        if (birthDate != null && birthDate.isAfter(LocalDate.now())) {
-            throw new GenericValidationException("Owner birth date cannot be in the future");
+    private void validateMobileNumberUniqueness(String mobileNumber, UUID uuid) {
+        if (ownerRepository.existsByPerson_profile_MobileNumberAndUuidNot(mobileNumber, uuid)) {
+            throw new ConflictException("An owner with this mobile number already exists", "Duplicate owner mobile number");
         }
     }
 
@@ -100,12 +89,12 @@ public class OwnerServiceImpl implements OwnerService {
     public void inactivate(UUID uuid) {
         Owner owner = getEntityByUuid(uuid);
         if (owner.getEntityStatus() != EntityStatus.ACTIVE) {
-            throw new GenericValidationException(
-                    "owner.is.inactive",
+            throw new ConflictException(
+                    "Owner is already inactive",
                     "owner is already inactive"
             );
         }
-        owner.setEntityStatus(EntityStatus.INACTIVE_NOT_DELETED);
+        owner.setEntityStatus(EntityStatus.INACTIVE);
         log.info("owner inactivated: {}", uuid);
     }
 
@@ -114,9 +103,9 @@ public class OwnerServiceImpl implements OwnerService {
     public void activate(UUID uuid) {
         Owner owner = ownerRepository.findByUuid(uuid)
                 .orElseThrow(() -> new ResourceNotFoundException("owner not found"));
-        if (owner.getEntityStatus() != EntityStatus.INACTIVE_NOT_DELETED) {
-            throw new GenericValidationException(
-                    "owner.cannot.be.activated",
+        if (owner.getEntityStatus() != EntityStatus.INACTIVE) {
+            throw new ConflictException(
+                    "Only inactive owners can be activated",
                     "owner cannot be activated"
             );
         }
@@ -129,11 +118,11 @@ public class OwnerServiceImpl implements OwnerService {
     public void delete(UUID uuid) {
         Owner owner = this.getEntityByUuid(uuid);
         if (!owner.getEntityStatus().equals(EntityStatus.ACTIVE)) {
-            throw new GenericValidationException(
-                    "owner.is.deleted",
+            throw new ConflictException(
+                    "Owner is already deleted",
                     "owner is already deleted");
         }
-        owner.setEntityStatus(EntityStatus.INACTIVE_DELETED);
+        owner.setStatus(EntityStatus.DELETED);
         log.info("owner has been deleted");
     }
 

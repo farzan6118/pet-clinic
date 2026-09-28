@@ -1,8 +1,8 @@
 package com.github.farzan6118.petclinic.pet.service;
 
-import com.github.farzan6118.petclinic.common.dto.request.PageRequestDto;
-import com.github.farzan6118.petclinic.common.dto.request.SortRequestDto;
+import com.github.farzan6118.petclinic.common.dto.request.PageAndSortRequestDto;
 import com.github.farzan6118.petclinic.common.dto.response.PageResponseDto;
+import com.github.farzan6118.petclinic.common.dto.response.UuidAndTitleResponseDto;
 import com.github.farzan6118.petclinic.pet.dto.request.CreateSpeciesRequestDto;
 import com.github.farzan6118.petclinic.pet.dto.request.UpdateSpeciesRequestDto;
 import com.github.farzan6118.petclinic.pet.dto.response.SpeciesResponseDto;
@@ -16,9 +16,9 @@ public interface SpeciesService {
 
     Species getEntityByUuid(UUID uuid);
 
-    PageResponseDto<SpeciesResponseDto> findAll(PageRequestDto page, SortRequestDto sort);
+    PageResponseDto<SpeciesResponseDto> findAll(PageAndSortRequestDto requestDto);
 
-    List<SpeciesResponseDto> findAll();
+    List<UuidAndTitleResponseDto> findAllIdAndTitle();
 
     void create(CreateSpeciesRequestDto request);
 

@@ -10,7 +10,7 @@ public interface SpeciesRepository extends JpaRepository<Species, Integer> {
 
     Optional<Species> findByUuid(UUID uuid);
 
-    boolean existsByCode(String code);
+    boolean existsByCodeIgnoreCase(String code);
 
-    boolean existsByCodeAndUuidNot(String code, UUID uuid);
+    boolean existsByCodeIgnoreCaseAndUuidNot(String code, UUID uuid);
 }

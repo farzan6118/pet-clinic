@@ -1,12 +1,16 @@
 package com.github.farzan6118.petclinic.vet.dto.response;
 
+import com.github.farzan6118.petclinic.person.dto.response.AddressResponseDto;
+import com.github.farzan6118.petclinic.person.dto.response.PersonResponseDto;
+import com.github.farzan6118.petclinic.person.dto.response.ProfileResponseDto;
+
 import java.util.UUID;
 
 public record VetResponseDto(
         UUID uuid,
-        String fullName,
-        String nationalId,
-        String mobileNumber,
-        String email
+        PersonResponseDto person,
+        ProfileResponseDto profile,
+        AddressResponseDto address,
+        UUID clinicUuid
 ) {
 }

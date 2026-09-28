@@ -1,33 +1,32 @@
-<body style="font-family:Arial,sans-serif;color:#24323d;line-height:1.5;background:#f4f7f8;padding:24px;">
-<main style="max-width:620px;margin:auto;background:#fff;border:1px solid #d9e2e6;padding:28px;">
-    <h2 style="margin-top:0;color:#176b87;">New appointment</h2>
-    <p>Dear <strong th:text="${vetName}">Dr. Smith</strong>, a new appointment is scheduled with you.</p>
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>New appointment assigned</title></head>
+<body style="margin:0;padding:24px;background:#eef3f5;color:#24323d;font-family:Arial,sans-serif;line-height:1.5;">
+<main style="max-width:620px;margin:auto;background:#ffffff;border:1px solid #cbd9df;padding:28px;">
+    <h2 style="margin-top:0;color:#245a73;">New appointment assigned</h2>
+    <p>Dear <strong th:text="${vetName}">Dr. Smith</strong>,</p>
+    <p>A new appointment has been added to your schedule.</p>
     <table style="width:100%;border-collapse:collapse;margin:22px 0;">
         <tr>
-            <th style="text-align:left;background:#eaf4f7;padding:10px;">Pet</th>
-            <td style="padding:10px;border-bottom:1px solid #d9e2e6;" th:text="|${petName} (${petType})|">Jessy (Cat)
+            <th style="text-align:left;background:#e6f0f4;padding:10px;">Patient</th>
+            <td style="padding:10px;border-bottom:1px solid #cbd9df;" th:text="|${petName} (${petType})|">Jessy (Cat)
             </td>
         </tr>
         <tr>
-            <th style="text-align:left;background:#eaf4f7;padding:10px;">Owner</th>
-            <td style="padding:10px;border-bottom:1px solid #d9e2e6;" th:text="${ownerName}">John Doe</td>
+            <th style="text-align:left;background:#e6f0f4;padding:10px;">Owner</th>
+            <td style="padding:10px;border-bottom:1px solid #cbd9df;" th:text="${ownerName}">John Doe</td>
         </tr>
         <tr>
-            <th style="text-align:left;background:#eaf4f7;padding:10px;">Date and time</th>
+            <th style="text-align:left;background:#e6f0f4;padding:10px;">Scheduled time</th>
             <td style="padding:10px;" th:text="${#temporals.format(visitDate, 'EEEE, MMMM dd, yyyy HH:mm')}">Thursday,
                 August 20, 2026 10:00
             </td>
         </tr>
     </table>
-    <p>Please review the appointment details before the scheduled time.</p>
-    <p>Best regards,<br>PetClinic Farzan6118</p>
+    <p>Please review the patient information and prepare for the appointment before the scheduled time.</p>
+    <p>Clinic operations<br>PetClinic Farzan6118</p>
 </main>
-</p>
-
-<p>
-    Best regards,<br>
-    PetClinic Farzan6118
-</p>
-
 </body>
 </html>

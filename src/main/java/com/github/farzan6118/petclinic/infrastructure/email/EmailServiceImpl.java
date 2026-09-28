@@ -1,6 +1,6 @@
 package com.github.farzan6118.petclinic.infrastructure.email;
 
-import com.github.farzan6118.petclinic.common.exception.FailedToSendEmailException;
+import com.github.farzan6118.petclinic.common.exception.ExternalServiceException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -161,7 +161,7 @@ public class EmailServiceImpl implements EmailService {
             mailSender.send(message);
 
         } catch (MessagingException e) {
-            throw new FailedToSendEmailException(to);
+            throw new ExternalServiceException("Email could not be sent", "Failed to send email");
         }
     }
 }

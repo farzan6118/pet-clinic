@@ -1,69 +1,79 @@
 package com.github.farzan6118.petclinic.vet.mapper;
 
-import com.github.farzan6118.petclinic.common.enums.AppointmentDuration;
-import com.github.farzan6118.petclinic.vet.dto.request.CreateVetRequestDto;
-import com.github.farzan6118.petclinic.vet.dto.request.UpdateVetRequestDto;
-import com.github.farzan6118.petclinic.vet.dto.response.VetProfileResponseDto;
+import com.github.farzan6118.petclinic.clinic.model.Clinic;
+import com.github.farzan6118.petclinic.common.dto.response.UuidAndTitleResponseDto;
+import com.github.farzan6118.petclinic.person.mapper.AddressMapper;
+import com.github.farzan6118.petclinic.person.mapper.PersonMapper;
+import com.github.farzan6118.petclinic.person.mapper.ProfileMapper;
+import com.github.farzan6118.petclinic.person.model.Person;
+import com.github.farzan6118.petclinic.vet.dto.request.VetCreateRequestDto;
+import com.github.farzan6118.petclinic.vet.dto.request.VetUpdateRequestDto;
 import com.github.farzan6118.petclinic.vet.dto.response.VetResponseDto;
-import com.github.farzan6118.petclinic.vet.model.Profile;
 import com.github.farzan6118.petclinic.vet.model.Vet;
 import org.springframework.stereotype.Component;
-
-import java.util.Locale;
 
 @Component
 public class VetMapper {
 
-    public Vet mapToEntity(CreateVetRequestDto request) {
-        if (request == null) {
-            return null;
-        }
-        Vet vet = new Vet();
-        vet.setFirstName(normalizeName(request.firstName()));
-        vet.setLastName(normalizeName(request.lastName()));
-        vet.setNationalId(request.nationalId());
-        vet.setMobileNumber(request.mobileNumber());
-        vet.setEmail(request.email());
-        return vet;
+    private final PersonMapper personMapper;
+    private final ProfileMapper profileMapper;
+    private final AddressMapper addressMapper;
+
+    public VetMapper(PersonMapper personMapper, ProfileMapper profileMapper, AddressMapper addressMapper) {
+        this.personMapper = personMapper;
+        this.profileMapper = profileMapper;
+        this.addressMapper = addressMapper;
     }
 
-    private AppointmentDuration handleAppointmentDuration(AppointmentDuration duration) {
-        return duration != null ? duration : AppointmentDuration.FIFTEEN_MINUTES;
-    }
-
-    public void mapToEntity(UpdateVetRequestDto request, Vet vet) {
-        vet.setFirstName(normalizeName(request.firstName()));
-        vet.setLastName(normalizeName(request.lastName()));
-        vet.setNationalId(request.nationalId());
-        vet.setMobileNumber(request.mobileNumber());
-        vet.setEmail(request.email());
-    }
-
-    public VetResponseDto mapToDto(Vet vet) {
+    public VetResponseDto toDto(Vet vet) {
+        Person person = vet.getPerson();
         return new VetResponseDto(
                 vet.getUuid(),
-                vet.getFullName(),
-                vet.getNationalId(),
-                vet.getMobileNumber(),
-                vet.getEmail()
+                personMapper.toDto(person),
+                profileMapper.toDto(person.getProfile()),
+                addressMapper.toDto(person.getAddress()),
+                vet.getClinic() == null ? null : vet.getClinic().getUuid()
         );
     }
 
-    public VetProfileResponseDto mapToVetProfileDto(Vet vet) {
-        Profile profile = vet.getProfile() != null ? vet.getProfile() : new Profile();
-        return new VetProfileResponseDto(
-                vet.getUuid(),
-                vet.getFullName(),
-                vet.getNationalId(),
-                vet.getMobileNumber(),
-                vet.getEmail(),
-                profile.getCity(),
-                profile.getAddress(),
-                profile.getSpecialty(),
-                profile.getBirthDate());
+    public Vet toEntity(VetCreateRequestDto request) {
+        Vet vet = new Vet();
+        Person person = personMapper.toEntity(request.person());
+        person.setProfile(profileMapper.toEntity(request.profile()));
+        person.setAddress(addressMapper.toEntity(request.address()));
+        vet.setPerson(person);
+        return vet;
     }
 
-    private String normalizeName(String string) {
-        return string.toLowerCase(Locale.ROOT).trim();
+    public Vet toEntity(VetCreateRequestDto request, Clinic clinic) {
+        Vet vet = new Vet();
+        Person person = personMapper.toEntity(request.person());
+        person.setProfile(profileMapper.toEntity(request.profile()));
+        person.setAddress(addressMapper.toEntity(request.address()));
+        vet.setPerson(person);
+        vet.setClinic(clinic);
+        return vet;
+    }
+
+    public void toEntity(VetUpdateRequestDto request, Vet vet, Clinic clinic) {
+        Person person = vet.getPerson();
+        personMapper.toEntity(request.person(), person);
+        profileMapper.toEntity(request.profile(), person.getProfile());
+        addressMapper.toEntity(request.address(), person.getAddress());
+        vet.setClinic(clinic);
+    }
+
+    public void toEntity(VetUpdateRequestDto request, Vet vet) {
+        Person person = vet.getPerson();
+        personMapper.toEntity(request.person(), person);
+        profileMapper.toEntity(request.profile(), person.getProfile());
+        addressMapper.toEntity(request.address(), person.getAddress());
+    }
+
+    public UuidAndTitleResponseDto toUuidAndTitle(Vet vet) {
+        return new UuidAndTitleResponseDto(
+                vet.getUuid(),
+                vet.getFullName()
+        );
     }
 }

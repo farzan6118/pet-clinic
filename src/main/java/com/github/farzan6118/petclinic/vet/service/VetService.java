@@ -1,9 +1,10 @@
 package com.github.farzan6118.petclinic.vet.service;
 
-import com.github.farzan6118.petclinic.vet.dto.request.CreateVetRequestDto;
-import com.github.farzan6118.petclinic.vet.dto.request.UpdateVetRequestDto;
-import com.github.farzan6118.petclinic.vet.dto.request.VetProfileUpdateRequestDto;
-import com.github.farzan6118.petclinic.vet.dto.response.VetProfileResponseDto;
+import com.github.farzan6118.petclinic.common.dto.request.PageAndSortRequestDto;
+import com.github.farzan6118.petclinic.common.dto.response.PageResponseDto;
+import com.github.farzan6118.petclinic.common.dto.response.UuidAndTitleResponseDto;
+import com.github.farzan6118.petclinic.vet.dto.request.VetCreateRequestDto;
+import com.github.farzan6118.petclinic.vet.dto.request.VetUpdateRequestDto;
 import com.github.farzan6118.petclinic.vet.dto.response.VetResponseDto;
 import com.github.farzan6118.petclinic.vet.model.Vet;
 
@@ -16,17 +17,19 @@ public interface VetService {
 
     Vet getEntityByUuid(UUID uuid);
 
-    List<VetResponseDto> findAll();
+    PageResponseDto<VetResponseDto> findAllPageable(PageAndSortRequestDto requestDto);
 
-    void create(CreateVetRequestDto request);
+    List<UuidAndTitleResponseDto> findAllIdAndTitle();
 
-    void updateVetProfileByUuid(VetProfileUpdateRequestDto request, UUID vetUuid);
+//    List<VetAvailableTimeSlot> findAvailableVets(
+//            LocalDateTime start,
+//            LocalDateTime end);
 
-    void update(UUID uuid, UpdateVetRequestDto request);
+    void create(VetCreateRequestDto request);
+
+    void update(UUID uuid, VetUpdateRequestDto request);
 
     void delete(UUID uuid);
-
-    VetProfileResponseDto getVetProfileByUuid(UUID uuid);
 
     Vet getVetWithUuidLock(UUID vetUuid);
 }
