@@ -15,15 +15,15 @@ public record VetAvailabilityCreateRequestDto(
         UUID vetUuid,
 
         @NotNull
-        @Schema(example = "09:00")
-        @JsonFormat(pattern = "HH:mm")
+        @Schema(example = "2026-10-02T09:00")
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
         @FutureOrPresent
         LocalDateTime startTime,
 
         @Future
         @NotNull
-        @Schema(example = "17:00")
-        @JsonFormat(pattern = "HH:mm")
+        @Schema(example = "2026-10-02T17:00")
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
         LocalDateTime endTime
 ) {
 }

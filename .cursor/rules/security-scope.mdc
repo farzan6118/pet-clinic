@@ -1,0 +1,22 @@
+---
+description: Current authentication and authorization state in pet-clinic
+alwaysApply: true
+---
+
+# Security and access control
+
+Read `config/WebSecurityConfig.java`, the relevant controller, and the Keycloak configuration before making security changes.
+
+## Current verified state
+
+- Spring Security and OAuth2 Resource Server JWT support are configured.
+- Keycloak login and current-user identity endpoints exist under `auth/` and call infrastructure services.
+- `WebSecurityConfig` currently ends authorization with `.anyRequest().permitAll()`. As a result, the API is not currently protected by authentication even though JWT support is configured.
+- Method-security support is enabled, but the current code does not define role/scope annotations on controllers or services.
+- There is no implemented business-manager/branch-manager authorization model in this repository.
+
+Do not claim that an endpoint is protected merely because Keycloak, JWT, or method security is present. Do not transplant user/business/branch scopes or role rules from another project. If asked to secure an endpoint, first establish the intended actors and ownership rules with the existing pet-clinic domain, then enforce them server-side and add suitable tests.
+
+Never trust a request-supplied owner, vet, clinic, pet, or other resource UUID as proof of authorization. Once authorization is implemented, validate that the authenticated actor is permitted to access the referenced records.
+
+Treat credentials in profile YAML as sensitive. Do not print, copy, or commit them. Prefer environment-backed secrets when introducing or changing configuration.

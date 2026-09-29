@@ -1,0 +1,25 @@
+---
+description: Keycloak and email integration conventions in pet-clinic
+alwaysApply: true
+---
+
+# External integrations
+
+This repository is a Spring Boot application with local persistence and a small set of HTTP/email integrations. The current integrations are Keycloak via Spring `RestClient` and email via Spring Mail/Thymeleaf. Reuse the existing `infrastructure/keycloak` and `infrastructure/email` abstractions.
+
+## Boundaries
+
+- Controllers delegate to application services; services use the existing client/service abstraction for external calls.
+- Keep HTTP client behavior in the Keycloak client/infrastructure layer, not in controllers or repositories.
+- Keep email rendering/delivery in the email infrastructure and visit-notification service, not in controllers.
+- Do not introduce gRPC, Kafka, MinIO, Redis, or another external platform based only on copied rules or unused/empty package names. Confirm an active dependency and a concrete requirement first. Caffeine-backed Spring Cache is the current cache implementation.
+
+## Failure and transaction behavior
+
+External calls are not part of a PostgreSQL transaction. Inspect call ordering, error mapping, timeout/configuration, and any existing retry behavior before changing an integration. Do not add retries unless repeating the operation is safe and the current service semantics support them.
+
+Some visit operations trigger notifications while handling state changes. Preserve notification recipients, templates, and event timing unless the requested behavior requires a reviewed change. Consider what happens when delivery fails after or before local persistence commits.
+
+## Configuration and secrets
+
+Reuse profile configuration and typed properties. Never log tokens, passwords, client secrets, or sensitive personal information. Do not duplicate credentials in code or documentation. Profile YAML contains local configuration that must be treated as sensitive.

@@ -1,0 +1,51 @@
+---
+description: Architecture and feature boundaries for the pet-clinic Spring Boot backend
+alwaysApply: true
+---
+
+# Architecture
+
+This repository is a single Spring Boot REST backend for veterinary clinic operations. The React client lives in a separate repository. Do not assume this codebase is a multi-service platform.
+
+## Package structure
+
+The root package is `com.github.farzan6118.petclinic`.
+
+- `appointment`: visits, duration templates, scheduling, search, and visit notification orchestration
+- `auth`: login and current-user HTTP endpoints and DTOs
+- `clinic`: clinic, room, and room-type domains
+- `common`: shared persistence, pagination, enums, exceptions, validation, and value objects
+- `config`: Spring, security, OpenAPI, cache, mail-client, and clinic-hours configuration
+- `infrastructure`: Keycloak HTTP integration and email delivery
+- `owner`: owner API and domain
+- `person`: person, profile, address, and their DTOs/mappers
+- `pet`: pets, species, and medical records
+- `vet`: veterinarians and availability
+
+Within a feature, follow the existing packages: `controller`, `service`, `repository`, `model`, `dto/request`, `dto/response`, and `mapper`. Not every feature has every layer. Use existing interfaces and implementation naming in that feature.
+
+## Request flow and ownership
+
+Controllers are HTTP boundaries and delegate to application services. Services coordinate business rules and persistence. Repositories query/persist their domain's data. Mappers translate between request/response DTOs and entities. Keep controllers free of repository access and substantial business logic.
+
+A service may use its own repositories and other domain service interfaces. Do not inject another domain's repository into a service; add or reuse a method on the owning domain's service.
+
+Follow the actual feature conventions. This project has service interfaces and implementations, but it does not have an active generic `BaseService`/`BaseEntityServiceImpl` hierarchy. `common/repository/BaseEntityRepository*` contains commented legacy code and is not the persistence pattern to extend.
+
+## Domain and persistence conventions
+
+- Entities inherit shared identifiers, UUIDs, audit fields, and `EntityStatus` from `common.persistence.BaseEntity`.
+- API boundaries use DTOs; do not expose JPA entities from controllers.
+- Existing mappers are handwritten Spring components. Check for a feature mapper before adding a mapping library or second mapping style.
+- Most domain repositories extend Spring Data `JpaRepository`. Shared paging is handled with `PageAndSortRequestDto`, `PageMapper`, and `PageResponseDto`.
+- Logical deletion uses `EntityStatus` and, for many entities, Hibernate `@SQLRestriction`. Preserve each service's existing active/inactive/deleted semantics.
+- `person` data is embedded in owner and vet request/response DTOs; there is no standalone person controller.
+- Medical-record creation is part of visit completion. Inspect the current pet controller before assuming medical-record routes; the API currently includes a read by pet UUID.
+
+## Scheduling is domain behavior
+
+`appointment.Visit` and `vet.VetAvailability` use the shared `common.valueobject.DateTimeRange`. Read the command service, availability service, repositories, DTOs, and tests together before changing scheduling. Preserve the existing clinic-hours, availability, vet/pet/room conflict, and locking behavior relevant to the operation.
+
+## Change discipline
+
+Before adding an abstraction, search for an existing feature pattern and make the smallest change that fits it. Do not transplant patterns or terms from other projects (for example Ticket/Invoice/Branch aggregates, SQL Server conventions, gRPC, or a generic CRUD framework) unless this codebase actually adopts them.
