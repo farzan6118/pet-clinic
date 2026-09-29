@@ -87,9 +87,12 @@ class VisitServiceImplTest {
         room.setUuid(UUID.randomUUID());
         room.setName("Examination room");
 
+        lenient().when(durationTemplateService.findByDurationMinutes(15))
+                .thenReturn(new DurationTemplateResponseDto(
+                        UUID.randomUUID(), "QUICK", 15, "Quick visit"));
         lenient().when(durationTemplateService.findByName("STANDARD"))
                 .thenReturn(new DurationTemplateResponseDto(
-                        UUID.randomUUID(), "STANDARD", 10, "Standard visit"));
+                        UUID.randomUUID(), "STANDARD", 30, "Standard visit"));
         lenient().when(vetAvailabilityService.findAvailableByUuidAndTimeRange(any(), any(), any()))
                 .thenReturn(Optional.of(vet));
         lenient().when(clinicProperties.closeDays()).thenReturn(java.util.Set.of());
@@ -106,7 +109,7 @@ class VisitServiceImplTest {
         LocalDate visitDate = LocalDate.now().plusDays(1);
         LocalTime visitTime = LocalTime.of(10, 0);
         CreateVisitRequestDto request = new CreateVisitRequestDto(
-                petUuid, vetUuid, visitDate, visitTime, VisitType.ONSITE, "General examination");
+                petUuid, vetUuid, visitDate, visitTime, VisitType.ONSITE, 15, "General examination");
 
         when(vetService.getVetWithUuidLock(vetUuid)).thenReturn(vet);
         when(petService.getEntityByUuid(petUuid)).thenReturn(pet);
@@ -129,7 +132,7 @@ class VisitServiceImplTest {
         assertEquals(room, savedVisit.getRoom());
         assertEquals(VisitStatus.SCHEDULED, savedVisit.getStatus());
         assertEquals(LocalDateTime.of(visitDate, visitTime), savedVisit.getStartTime());
-        assertEquals(LocalDateTime.of(visitDate, visitTime.plusMinutes(10)), savedVisit.getEndTime());
+        assertEquals(LocalDateTime.of(visitDate, visitTime.plusMinutes(15)), savedVisit.getEndTime());
         verify(visitNotificationService).notifyBookVisitParticipants(savedVisit, pet, vet);
     }
 
@@ -157,7 +160,7 @@ class VisitServiceImplTest {
         service.rescheduleVisit(visitUuid, request);
 
         assertEquals(LocalDateTime.of(newDate, newTime), visit.getStartTime());
-        assertEquals(LocalDateTime.of(newDate, newTime.plusMinutes(10)), visit.getEndTime());
+        assertEquals(LocalDateTime.of(newDate, newTime.plusMinutes(30)), visit.getEndTime());
         assertEquals("Updated visit", visit.getDescription());
         verify(visitRepository).save(visit);
         verify(visitNotificationService).notifyRescheduleVisitParticipants(
@@ -223,7 +226,7 @@ class VisitServiceImplTest {
     void bookVisit_shouldNotSaveWhenVetHasNoAvailability() {
         LocalDate date = LocalDate.now().plusDays(1);
         CreateVisitRequestDto request = new CreateVisitRequestDto(
-                petUuid, vetUuid, date, LocalTime.of(10, 0), VisitType.ONSITE, "Checkup");
+                petUuid, vetUuid, date, LocalTime.of(10, 0), VisitType.ONSITE, 15, "Checkup");
         when(vetService.getVetWithUuidLock(vetUuid)).thenReturn(vet);
         when(petService.getEntityByUuid(petUuid)).thenReturn(pet);
         when(roomService.getAvailableRoomByVisitTypeAndVisitCategory(
@@ -241,7 +244,7 @@ class VisitServiceImplTest {
     void bookVisit_shouldNotSaveWhenClinicIsClosed() {
         LocalDate date = LocalDate.now().plusDays(1);
         CreateVisitRequestDto request = new CreateVisitRequestDto(
-                petUuid, vetUuid, date, LocalTime.of(7, 0), VisitType.ONSITE, "Checkup");
+                petUuid, vetUuid, date, LocalTime.of(7, 0), VisitType.ONSITE, 15, "Checkup");
         when(vetService.getVetWithUuidLock(vetUuid)).thenReturn(vet);
         when(petService.getEntityByUuid(petUuid)).thenReturn(pet);
         when(roomService.getAvailableRoomByVisitTypeAndVisitCategory(

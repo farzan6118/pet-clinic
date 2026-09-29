@@ -32,6 +32,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -146,23 +149,28 @@ public class FillInitialRecords implements CommandLineRunner {
         List<Owner> owners = ownerRepository.findAll();
         List<Species> species = speciesRepository.findAll();
 
-        if (owners.size() < 3 || species.size() < 3) return;
+        if (owners.size() < 3 || species.size() < 4) return;
+
+        Map<String, Owner> ownersByNationalId = owners.stream()
+                .collect(Collectors.toMap(owner -> owner.getPerson().getNationalId(), Function.identity()));
+        Map<String, Species> speciesByCode = species.stream()
+                .collect(Collectors.toMap(Species::getCode, Function.identity()));
 
         petRepository.saveAll(List.of(
                 pet("Luna", "White", "Small black mark", Sex.FEMALE,
-                        species.get(0), owners.get(0), LocalDate.of(2021, 5, 12)),
+                        speciesByCode.get("DOG"), ownersByNationalId.get("200000001"), LocalDate.of(2021, 5, 12)),
 
                 pet("Milo", "Orange", "White paws", Sex.MALE,
-                        species.get(1), owners.get(0), LocalDate.of(2022, 2, 8)),
+                        speciesByCode.get("CAT"), ownersByNationalId.get("200000001"), LocalDate.of(2022, 2, 8)),
 
                 pet("Coco", "Brown", "Long ears", Sex.FEMALE,
-                        species.get(2), owners.get(1), LocalDate.of(2023, 7, 21)),
+                        speciesByCode.get("RABBIT"), ownersByNationalId.get("200000002"), LocalDate.of(2023, 7, 21)),
 
                 pet("Cookie", "Red", "Long ears", Sex.MALE,
-                        species.get(2), owners.get(2), LocalDate.of(2020, 2, 10)),
+                        speciesByCode.get("RABBIT"), ownersByNationalId.get("200000003"), LocalDate.of(2020, 2, 10)),
 
                 pet("Cookie", "Red", "Long ears", Sex.FEMALE,
-                        species.get(3), owners.get(2), LocalDate.of(2021, 4, 16))
+                        speciesByCode.get("HAMSTER"), ownersByNationalId.get("200000003"), LocalDate.of(2021, 4, 16))
         ));
     }
 

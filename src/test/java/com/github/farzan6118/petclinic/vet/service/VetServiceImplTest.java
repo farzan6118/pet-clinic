@@ -3,8 +3,12 @@ package com.github.farzan6118.petclinic.vet.service;
 import com.github.farzan6118.petclinic.common.enums.EntityStatus;
 import com.github.farzan6118.petclinic.common.exception.ConflictException;
 import com.github.farzan6118.petclinic.common.mapper.PageMapper;
+import com.github.farzan6118.petclinic.clinic.model.Clinic;
+import com.github.farzan6118.petclinic.clinic.service.ClinicService;
 import com.github.farzan6118.petclinic.person.dto.request.ProfileCreateRequestDto;
 import com.github.farzan6118.petclinic.person.dto.request.ProfileUpdateRequestDto;
+import com.github.farzan6118.petclinic.person.dto.request.PersonCreateRequestDto;
+import com.github.farzan6118.petclinic.person.dto.request.AddressCreateRequestDto;
 import com.github.farzan6118.petclinic.person.model.Address;
 import com.github.farzan6118.petclinic.person.model.Person;
 import com.github.farzan6118.petclinic.person.model.Profile;
@@ -36,18 +40,26 @@ class VetServiceImplTest {
     private PageMapper pageMapper;
     @Mock
     private VetMapper vetMapper;
+    @Mock
+    private ClinicService clinicService;
     @InjectMocks
     private VetServiceImpl service;
 
     @Test
     void create_shouldPersistNestedPersonWhenContactIsUnique() {
-        VetCreateRequestDto request = new VetCreateRequestDto(null, profileCreate(), null);
+        UUID clinicUuid = UUID.randomUUID();
+        VetCreateRequestDto request = new VetCreateRequestDto(
+                new PersonCreateRequestDto("Dr.", "Sara", "Moradi", "100000001"),
+                profileCreate(), new AddressCreateRequestDto("Home", "Germany", "Berlin", "Berlin",
+                "1", null, null, "Main Street", "1234567890", 52.52, 13.4, null, true), clinicUuid);
         Vet vet = new Vet();
-        when(vetMapper.toEntity(request)).thenReturn(vet);
+        Clinic clinic = new Clinic();
+        when(clinicService.getEntityByUuid(clinicUuid)).thenReturn(clinic);
+        when(vetMapper.toEntity(request, clinic)).thenReturn(vet);
 
         service.create(request);
 
-        verify(vetMapper).toEntity(request);
+        verify(vetMapper).toEntity(request, clinic);
         verify(vetRepository).save(vet);
     }
 
