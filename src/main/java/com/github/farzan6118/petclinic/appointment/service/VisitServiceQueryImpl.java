@@ -1,15 +1,27 @@
 package com.github.farzan6118.petclinic.appointment.service;
 
+import com.github.farzan6118.petclinic.appointment.dto.request.AvailableVisitSlotsRangeRequestDto;
+import com.github.farzan6118.petclinic.appointment.dto.request.AvailableVisitSlotsRequestDto;
 import com.github.farzan6118.petclinic.appointment.dto.request.VisitAdvancedSearch;
+import com.github.farzan6118.petclinic.appointment.dto.response.AvailableVisitSlotResponseDto;
+import com.github.farzan6118.petclinic.appointment.dto.response.DurationTemplateResponseDto;
 import com.github.farzan6118.petclinic.appointment.dto.response.VisitResponseDto;
 import com.github.farzan6118.petclinic.appointment.mapper.VisitMapper;
 import com.github.farzan6118.petclinic.appointment.model.Visit;
 import com.github.farzan6118.petclinic.appointment.repository.VisitRepository;
+import com.github.farzan6118.petclinic.clinic.model.Room;
+import com.github.farzan6118.petclinic.clinic.service.RoomService;
 import com.github.farzan6118.petclinic.common.dto.request.PageAndSortRequestDto;
 import com.github.farzan6118.petclinic.common.dto.response.PageResponseDto;
+import com.github.farzan6118.petclinic.common.enums.VisitStatus;
 import com.github.farzan6118.petclinic.common.exception.BadRequestException;
 import com.github.farzan6118.petclinic.common.exception.ResourceNotFoundException;
 import com.github.farzan6118.petclinic.common.mapper.PageMapper;
+import com.github.farzan6118.petclinic.config.ClinicProperties;
+import com.github.farzan6118.petclinic.pet.service.PetService;
+import com.github.farzan6118.petclinic.vet.model.VetAvailability;
+import com.github.farzan6118.petclinic.vet.service.VetAvailabilityService;
+import com.github.farzan6118.petclinic.vet.service.VetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -17,7 +29,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,6 +46,12 @@ public class VisitServiceQueryImpl implements VisitServiceQuery {
     private final VisitRepository visitRepository;
     private final VisitMapper visitMapper;
     private final PageMapper pageMapper;
+    private final VetAvailabilityService vetAvailabilityService;
+    private final VetService vetService;
+    private final PetService petService;
+    private final RoomService roomService;
+    private final DurationTemplateService durationTemplateService;
+    private final ClinicProperties clinicProperties;
 
     @Override
     public VisitResponseDto findByUuid(UUID uuid) {
@@ -68,6 +90,107 @@ public class VisitServiceQueryImpl implements VisitServiceQuery {
         validateDateRange(request.visitDateFrom(), request.visitDateTo(),
                 "invalid.visit.date.from.visit.date.to",
                 "visit date from is after visit date to");
+    }
+
+    @Override
+    public List<AvailableVisitSlotResponseDto> findAvailableSlots(AvailableVisitSlotsRequestDto request) {
+        vetService.getEntityByUuid(request.vetUuid());
+        petService.getEntityByUuid(request.petUuid());
+        DurationTemplateResponseDto duration = durationTemplateService
+                .findByDurationMinutes(request.durationMinutes());
+
+        Room room = roomService.getRoomForAvailabilitySearch(request.visitType());
+        LocalDateTime dayStart = request.date().atStartOfDay();
+        LocalDateTime dayEnd = request.date().plusDays(1).atStartOfDay();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime earliestStart = dayStart.isBefore(now) ? now : dayStart;
+        if (earliestStart.getSecond() != 0 || earliestStart.getNano() != 0) {
+            earliestStart = earliestStart.withSecond(0).withNano(0).plusMinutes(1);
+        }
+        List<AvailableVisitSlotResponseDto> slots = new ArrayList<>();
+
+        if (clinicProperties.closeDays().contains(request.date().getDayOfWeek())) {
+            return slots;
+        }
+
+        List<Visit> vetVisits = visitRepository.findAllVisitsByVetUuidAndStartTimeBetween(
+                request.vetUuid(), dayStart, dayEnd);
+        List<Visit> petVisits = visitRepository.findAllVisitsByPetUuidAndStartTimeBetween(
+                request.petUuid(), dayStart, dayEnd);
+        List<Visit> roomVisits = room == null ? List.of()
+                : visitRepository.findAllVisitsByRoomUuidAndStartTimeBetween(
+                room.getUuid(), dayStart, dayEnd);
+
+        for (VetAvailability availability : vetAvailabilityService
+                .findActiveByVetUuidAndOverlappingDay(request.vetUuid(), request.date())) {
+            LocalDateTime start = availability.getTimeRange().getStartDateTime();
+            if (start.isBefore(earliestStart)) {
+                long minutesFromAvailability = Duration.between(start, earliestStart).toMinutes();
+                long intervals = (minutesFromAvailability + request.intervalMinutes() - 1)
+                        / request.intervalMinutes();
+                start = start.plusMinutes(intervals * request.intervalMinutes());
+            }
+
+            while (!start.plusMinutes(duration.durationMinutes())
+                    .isAfter(availability.getTimeRange().getEndDateTime())) {
+                LocalDateTime end = start.plusMinutes(duration.durationMinutes());
+                if (start.isBefore(dayEnd)
+                        && isWithinClinicHours(start, end)
+                        && isAvailable(vetVisits, petVisits, roomVisits, start, end)) {
+                    slots.add(new AvailableVisitSlotResponseDto(
+                            start, end, room == null ? null : room.getUuid()));
+                }
+                start = start.plusMinutes(request.intervalMinutes());
+            }
+        }
+
+        return slots.stream()
+                .distinct()
+                .sorted(Comparator.comparing(AvailableVisitSlotResponseDto::visitDateFrom))
+                .toList();
+    }
+
+    @Override
+    public List<AvailableVisitSlotResponseDto> findAvailableSlots(AvailableVisitSlotsRangeRequestDto request) {
+        long days = ChronoUnit.DAYS.between(request.dateFrom(), request.dateTo());
+        if (days < 0 || days > 30) {
+            throw new BadRequestException("Date range must be between 1 and 31 days");
+        }
+
+        List<AvailableVisitSlotResponseDto> slots = new ArrayList<>();
+        for (LocalDateTime date = request.dateFrom().atStartOfDay();
+             !date.toLocalDate().isAfter(request.dateTo());
+             date = date.plusDays(1)) {
+            slots.addAll(findAvailableSlots(new AvailableVisitSlotsRequestDto(
+                    request.vetUuid(), request.petUuid(), date.toLocalDate(), request.visitType(),
+                    request.durationMinutes(), request.intervalMinutes())));
+        }
+        return slots;
+    }
+
+    private boolean isWithinClinicHours(LocalDateTime start, LocalDateTime end) {
+        ClinicProperties.WorkingHours hours = clinicProperties.workingHours();
+        return !start.toLocalTime().isBefore(hours.start())
+                && !end.toLocalTime().isAfter(hours.end());
+    }
+
+    private boolean isAvailable(
+            List<Visit> vetVisits, List<Visit> petVisits, List<Visit> roomVisits,
+            LocalDateTime start, LocalDateTime end) {
+        return vetVisits.stream().noneMatch(visit -> overlapsActiveVisit(visit, start, end, false))
+                && petVisits.stream().noneMatch(visit -> overlapsActiveVisit(visit, start, end, false))
+                && roomVisits.stream().noneMatch(visit -> overlapsActiveVisit(visit, start, end, true));
+    }
+
+    private boolean overlapsActiveVisit(
+            Visit visit, LocalDateTime start, LocalDateTime end, boolean roomReservation) {
+        if (visit.getStatus() == VisitStatus.CANCELLED || visit.getStatus() == VisitStatus.COMPLETED) {
+            return false;
+        }
+        if (roomReservation) {
+            return !visit.getStartTime().isAfter(end) && visit.getEndTime().isAfter(start);
+        }
+        return visit.getStartTime().isBefore(end) && visit.getEndTime().isAfter(start);
     }
 
     private <T extends Comparable<? super T>> void validateDateRange(

@@ -6,6 +6,7 @@ import com.github.farzan6118.petclinic.vet.dto.request.VetAvailabilityCreateRequ
 import com.github.farzan6118.petclinic.vet.dto.request.VetAvailabilityUpdateRequestDto;
 import com.github.farzan6118.petclinic.vet.dto.response.VetAvailabilityResponseDto;
 import com.github.farzan6118.petclinic.vet.model.Vet;
+import com.github.farzan6118.petclinic.vet.model.VetAvailability;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,4 +28,6 @@ public interface VetAvailabilityService {
     Optional<Vet> findAvailableByUuidAndTimeRange(UUID uuid, LocalDateTime StartTime, LocalDateTime EndTime);
 
     List<VetAvailabilityResponseDto> getByDate(LocalDate localDate);
+
+    List<VetAvailability> findActiveByVetUuidAndOverlappingDay(UUID vetUuid, LocalDate date);
 }

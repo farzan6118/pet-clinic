@@ -65,6 +65,21 @@ public interface VetAvailabilityRepository extends JpaRepository<VetAvailability
 
     Page<VetAvailability> findAllByVetUuid(UUID vetUuid, Pageable pageable);
 
+    @Query("""
+            select a from VetAvailability a
+            where a.vet.uuid = :vetUuid
+              and a.active = true
+              and a.entityStatus = 'ACTIVE'
+              and a.timeRange.startDateTime < :dayEnd
+              and a.timeRange.endDateTime > :dayStart
+            order by a.timeRange.startDateTime
+            """)
+    List<VetAvailability> findActiveByVetUuidAndOverlappingDay(
+            @Param("vetUuid") UUID vetUuid,
+            @Param("dayStart") LocalDateTime dayStart,
+            @Param("dayEnd") LocalDateTime dayEnd
+    );
+
     Optional<VetAvailability> findByUuid(UUID uuid);
 
     @Query("""

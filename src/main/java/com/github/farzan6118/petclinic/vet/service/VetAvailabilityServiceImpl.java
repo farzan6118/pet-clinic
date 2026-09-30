@@ -125,4 +125,10 @@ public class VetAvailabilityServiceImpl implements VetAvailabilityService {
         return vetAvailabilities.stream().map(vetAvailabilityMapper::mapToDto).toList();
     }
 
+    @Override
+    public List<VetAvailability> findActiveByVetUuidAndOverlappingDay(UUID vetUuid, LocalDate date) {
+        return availabilityRepository.findActiveByVetUuidAndOverlappingDay(
+                vetUuid, date.atStartOfDay(), date.plusDays(1).atStartOfDay());
+    }
+
 }

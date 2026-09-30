@@ -29,4 +29,14 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
             order by room.id
             """)
     List<Room> findActiveRoomsByTypeNames(@Param("roomTypeNames") List<String> roomTypeNames);
+
+    @Query("""
+            select room
+            from Room room
+            where room.active = true
+                and room.clinic.active = true
+                and lower(room.roomType.name) in :roomTypeNames
+            order by room.id
+            """)
+    List<Room> findActiveRoomsByTypeNamesWithoutLock(@Param("roomTypeNames") List<String> roomTypeNames);
 }

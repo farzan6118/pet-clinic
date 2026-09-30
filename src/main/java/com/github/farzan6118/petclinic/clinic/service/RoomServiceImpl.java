@@ -89,6 +89,25 @@ public class RoomServiceImpl implements RoomService {
                         "No room is available for the selected visit type and time"));
     }
 
+    @Override
+    public Room getRoomForAvailabilitySearch(VisitType visitType) {
+        List<String> roomTypeNames = switch (visitType) {
+            case ONSITE -> List.of("examination", "individual");
+            case ONLINE, OFFSITE -> List.of();
+        };
+
+        if (roomTypeNames.isEmpty()) {
+            return null;
+        }
+
+        return roomRepository.findActiveRoomsByTypeNamesWithoutLock(roomTypeNames)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "visit.room.not.available",
+                        "No room is available for the selected visit type and time"));
+    }
+
 
     @Transactional
     @Override

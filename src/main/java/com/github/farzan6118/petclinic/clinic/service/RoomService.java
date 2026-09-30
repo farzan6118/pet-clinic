@@ -31,4 +31,6 @@ public interface RoomService {
 
     Room getAvailableRoomByVisitTypeAndVisitCategory(VisitType visitType, VisitCategory visitCategory);
 
+    Room getRoomForAvailabilitySearch(VisitType visitType);
+
 }

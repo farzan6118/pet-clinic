@@ -139,22 +139,30 @@ Hibernate currently uses `ddl-auto: update`. Flyway settings are commented out a
 
 All API routes use the `/api` prefix. Request and response bodies use DTOs; persistence entities are not intended to be exposed directly.
 
-| Resource | Base route | Main operations |
-| --- | --- | --- |
-| Authentication | `/api/auth/login` | Login |
-| User identity | `/api/user` | Current user (`/me`) |
-| Owners | `/api/owners` | Create, update, soft-delete, fetch, paginate, list an owner's pets |
-| Pets | `/api/pets` | Create, update, soft-delete, fetch, paginate |
-| Species | `/api/species` | Create, update, soft-delete, fetch, paginate, list |
-| Veterinarians | `/api/vets` | Create, update, soft-delete, fetch, paginate, list |
-| Veterinarian availability | `/api/vets/{vetUuid}/availabilities` | Create, update, soft-delete, paginate |
-| Clinics | `/api/clinics` | Create, update, soft-delete, fetch, paginate, list |
-| Rooms | `/api/rooms` | Create, update, soft-delete, fetch, paginate, list |
-| Room types | `/api/room-types` | Create, update, soft-delete, fetch, paginate, list |
-| Visits | `/api/visits` | Book, reschedule, cancel, complete, fetch, paginate, advanced search |
-| Duration templates | `/api/duration-templates` | Create, update, soft-delete, fetch, paginate, list |
+| Resource                  | Base route                           | Main operations                                                                       |
+|---------------------------|--------------------------------------|---------------------------------------------------------------------------------------|
+| Authentication            | `/api/auth/login`                    | Login                                                                                 |
+| User identity             | `/api/user`                          | Current user (`/me`)                                                                  |
+| Owners                    | `/api/owners`                        | Create, update, soft-delete, fetch, paginate, list an owner's pets                    |
+| Pets                      | `/api/pets`                          | Create, update, soft-delete, fetch, paginate                                          |
+| Species                   | `/api/species`                       | Create, update, soft-delete, fetch, paginate, list                                    |
+| Veterinarians             | `/api/vets`                          | Create, update, soft-delete, fetch, paginate, list                                    |
+| Veterinarian availability | `/api/vets/{vetUuid}/availabilities` | Create, update, soft-delete, paginate                                                 |
+| Clinics                   | `/api/clinics`                       | Create, update, soft-delete, fetch, paginate, list                                    |
+| Rooms                     | `/api/rooms`                         | Create, update, soft-delete, fetch, paginate, list                                    |
+| Room types                | `/api/room-types`                    | Create, update, soft-delete, fetch, paginate, list                                    |
+| Visits                    | `/api/visits`                        | Book, reschedule, cancel, complete, fetch, paginate, advanced search, available slots |
+| Duration templates        | `/api/duration-templates`            | Create, update, soft-delete, fetch, paginate, list                                    |
 
 Visit routes include `POST /api/visits`, `PUT /api/visits/{uuid}`, `DELETE /api/visits/{uuid}`, `PATCH /api/visits/{uuid}/complete`, `GET /api/visits/{uuid}`, `GET /api/visits/page`, and `GET /api/visits/search`. Consult Swagger UI or controller DTOs for request fields, response shapes, validation rules, and query parameters.
+
+`GET /api/visits/available-slots` accepts `vetUuid`, `petUuid`, `date` (`YYYY-MM-DD`), `visitType`, `durationMinutes`
+(default `15`), and `intervalMinutes` (default `15`). It returns candidate start/end date-times and the selected room
+UUID, excluding slots blocked by clinic hours, veterinarian/pet reservations, or room reservations. Durations must match
+a configured duration template.
+
+`GET /api/visits/available-slots/range` accepts the same parameters with `dateFrom` and `dateTo` (inclusive, at most 31
+days) instead of `date`, returning all available slots in chronological order.
 
 ## Domain and persistence
 
