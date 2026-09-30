@@ -56,27 +56,24 @@ public class VisitServiceQueryImpl implements VisitServiceQuery {
         Pageable pageable = pageMapper.getPageable(
                 request.pageNumber(), request.pageSize(),
                 request.sortBy(), request.sortDirection());
-        dateTimeValidation(request);
+        validateDateRanges(request);
         Page<Visit> pagedVisit = visitRepository.advancedSearch(request, pageable);
         return pageMapper.toPageResponse(pagedVisit, visitMapper::toResponse);
     }
 
-    private void dateTimeValidation(VisitAdvancedSearch request) {
-        if (request.createdDateFrom() != null && request.createdDateTo() != null) {
-            if (request.createdDateFrom().isAfter(request.createdDateTo())) {
-                throw new BadRequestException(
-                        "invalid.created.date.from.created.date.to",
-                        "create date from is after create date to"
-                );
-            }
-        }
-        if (request.visitDateFrom() != null && request.visitDateTo() != null) {
-            if (request.visitDateFrom().isAfter(request.visitDateTo())) {
-                throw new BadRequestException(
-                        "invalid.visit.date.from.visit.date.to",
-                        "visit date from is after visit date to"
-                );
-            }
+    private void validateDateRanges(VisitAdvancedSearch request) {
+        validateDateRange(request.createdDateFrom(), request.createdDateTo(),
+                "invalid.created.date.from.created.date.to",
+                "create date from is after create date to");
+        validateDateRange(request.visitDateFrom(), request.visitDateTo(),
+                "invalid.visit.date.from.visit.date.to",
+                "visit date from is after visit date to");
+    }
+
+    private <T extends Comparable<? super T>> void validateDateRange(
+            T from, T to, String errorCode, String message) {
+        if (from != null && to != null && from.compareTo(to) > 0) {
+            throw new BadRequestException(errorCode, message);
         }
     }
 

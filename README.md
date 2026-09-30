@@ -83,6 +83,12 @@ The application uses Spring Boot Docker Compose integration for `src/main/resour
 1. Create a PostgreSQL database named `pet_clinic` and configure the profile's database connection.
 2. Start any required local services. Configure Keycloak at the issuer URL and realm expected by the selected profile; start Redis if using cache-backed features. Mailpit is configured through the application's Docker Compose integration.
 3. Set profile-specific values and secrets through environment variables or a local, untracked configuration file. Never commit credentials.
+
+The `home` and `company` profiles accept `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `KEYCLOAK_SERVER_URL`,
+`KEYCLOAK_REALM`, `KEYCLOAK_CLIENT_ID`, and `KEYCLOAK_CLIENT_SECRET`. Database connection values retain local
+development defaults; set `KEYCLOAK_CLIENT_SECRET` when using Keycloak login because no client secret is stored in the
+profile files.
+
 4. From the repository root, compile and test:
 
    ```bash
