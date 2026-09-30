@@ -2,7 +2,9 @@ package com.github.farzan6118.petclinic.clinic.controller;
 
 import com.github.farzan6118.petclinic.clinic.dto.request.CreateClinicRequestDto;
 import com.github.farzan6118.petclinic.clinic.dto.request.UpdateClinicRequestDto;
+import com.github.farzan6118.petclinic.clinic.dto.response.ClinicAvailabilityResponseDto;
 import com.github.farzan6118.petclinic.clinic.dto.response.ClinicResponseDto;
+import com.github.farzan6118.petclinic.clinic.service.ClinicAvailabilityService;
 import com.github.farzan6118.petclinic.clinic.service.ClinicService;
 import com.github.farzan6118.petclinic.common.dto.request.PageAndSortRequestDto;
 import com.github.farzan6118.petclinic.common.dto.response.PageResponseDto;
@@ -24,6 +26,12 @@ import java.util.UUID;
 public class ClinicController {
 
     private final ClinicService clinicService;
+    private final ClinicAvailabilityService clinicAvailabilityService;
+
+    @GetMapping("/availability")
+    public ResponseEntity<List<ClinicAvailabilityResponseDto>> getAvailability() {
+        return ResponseEntity.ok(clinicAvailabilityService.getAvailability());
+    }
 
     @GetMapping("/{uuid}")
     public ResponseEntity<ClinicResponseDto> getByUuid(@PathVariable UUID uuid) {

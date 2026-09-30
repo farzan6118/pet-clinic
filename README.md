@@ -156,6 +156,10 @@ All API routes use the `/api` prefix. Request and response bodies use DTOs; pers
 
 Visit routes include `POST /api/visits`, `PUT /api/visits/{uuid}`, `DELETE /api/visits/{uuid}`, `PATCH /api/visits/{uuid}/complete`, `GET /api/visits/{uuid}`, `GET /api/visits/page`, and `GET /api/visits/search`. Consult Swagger UI or controller DTOs for request fields, response shapes, validation rules, and query parameters.
 
+`GET /api/clinics/availability` returns the weekly schedule from Monday through Sunday. Each entry has `dayOfWeek`,
+`available`, `openingTime`, and `closingTime`. Closed days have null times. It uses `clinic.availibility.working-hours`
+and `clinic.availibility.close-days` from the active application YAML profile.
+
 `GET /api/visits/available-slots` accepts `vetUuid`, `petUuid`, `date` (`YYYY-MM-DD`), `visitType`, `durationMinutes`
 (default `15`), and `intervalMinutes` (default `15`). It returns candidate start/end date-times and the selected room
 UUID, excluding slots blocked by clinic hours, veterinarian/pet reservations, or room reservations. Durations must match
