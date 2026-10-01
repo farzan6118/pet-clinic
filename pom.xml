@@ -22,11 +22,11 @@
     <!-- ========================================================= -->
 
     <groupId>com.github.farzan6118</groupId>
-    <artifactId>veterinary-clinic</artifactId>
+    <artifactId>pet-clinic</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
-    <name>veterinary-clinic</name>
-    <description>Veterinary Clinic Management System</description>
+    <name>pet-clinic</name>
+    <description>Pet Clinic Management System</description>
 
     <!-- ========================================================= -->
     <!-- Properties                                                  -->
@@ -194,11 +194,11 @@
 
         <!-- ==================== Test Data ==================== -->
 
-        <dependency>
-            <groupId>net.datafaker</groupId>
-            <artifactId>datafaker</artifactId>
-            <version>${datafaker.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>net.datafaker</groupId>-->
+<!--            <artifactId>datafaker</artifactId>-->
+<!--            <version>${datafaker.version}</version>-->
+<!--        </dependency>-->
 
     </dependencies>
 
