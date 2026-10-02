@@ -3,10 +3,8 @@ package com.github.farzan6118.visit.service;
 import com.github.farzan6118.appointment.dto.request.CompleteVisitRequestDto;
 import com.github.farzan6118.appointment.dto.request.CreateVisitRequestDto;
 import com.github.farzan6118.appointment.dto.request.RescheduleVisitRequestDto;
-import com.github.farzan6118.appointment.dto.response.DurationTemplateResponseDto;
 import com.github.farzan6118.appointment.model.Visit;
 import com.github.farzan6118.appointment.repository.VisitRepository;
-import com.github.farzan6118.appointment.service.DurationTemplateService;
 import com.github.farzan6118.appointment.service.VisitServiceCommandImpl;
 import com.github.farzan6118.clinic.model.Room;
 import com.github.farzan6118.clinic.model.Clinic;
@@ -65,8 +63,6 @@ class VisitServiceImplTest {
     @Mock
     private VetAvailabilityService vetAvailabilityService;
     @Mock
-    private DurationTemplateService durationTemplateService;
-    @Mock
     private VisitNotificationService visitNotificationService;
     @Mock
     private MedicalRecordService medicalRecordService;
@@ -92,9 +88,6 @@ class VisitServiceImplTest {
         clinic.setActive(true);
         room.setClinic(clinic);
 
-        lenient().when(durationTemplateService.findByName("STANDARD"))
-                .thenReturn(new DurationTemplateResponseDto(
-                        UUID.randomUUID(), "STANDARD", 30, "Standard visit"));
         lenient().when(vetAvailabilityService.findAvailableByUuidAndTimeRange(any(), any(), any()))
                 .thenReturn(Optional.of(vet));
         lenient().when(clinicProperties.closeDays()).thenReturn(java.util.Set.of());
@@ -162,11 +155,61 @@ class VisitServiceImplTest {
         service.rescheduleVisit(visitUuid, request);
 
         assertEquals(LocalDateTime.of(newDate, newTime), visit.getStartTime());
-        assertEquals(LocalDateTime.of(newDate, newTime.plusMinutes(30)), visit.getEndTime());
+        assertEquals(LocalDateTime.of(newDate, newTime.plusMinutes(10)), visit.getEndTime());
         assertEquals("Updated visit", visit.getDescription());
         verify(visitRepository).save(visit);
         verify(visitNotificationService).notifyRescheduleVisitParticipants(
                 oldStart, visit, pet, vet, LocalDateTime.of(newDate, newTime));
+    }
+
+    @Test
+    void rescheduleVisit_shouldRequireRoomForOnsiteVisit() {
+        LocalDate oldDate = LocalDate.now().plusDays(1);
+        Visit visit = new Visit().schedule(vet, pet, room, oldDate.atTime(9, 0),
+                oldDate.atTime(9, 10), VisitType.ONSITE, "Visit");
+        visit.setUuid(visitUuid);
+        when(visitRepository.findByUuidForUpdate(visitUuid)).thenReturn(Optional.of(visit));
+        RescheduleVisitRequestDto request = new RescheduleVisitRequestDto(
+                oldDate.plusDays(1), LocalTime.of(11, 0), VisitType.ONSITE, null, null, null);
+
+        assertThrows(BadRequestException.class, () -> service.rescheduleVisit(visitUuid, request));
+        assertEquals(oldDate.atTime(9, 0), visit.getStartTime());
+        verify(visitRepository, never()).save(any(Visit.class));
+    }
+
+    @Test
+    void rescheduleVisit_shouldRejectRoomForRemoteVisit() {
+        LocalDate oldDate = LocalDate.now().plusDays(1);
+        Visit visit = new Visit().schedule(vet, pet, room, oldDate.atTime(9, 0),
+                oldDate.atTime(9, 10), VisitType.ONSITE, "Visit");
+        visit.setUuid(visitUuid);
+        when(visitRepository.findByUuidForUpdate(visitUuid)).thenReturn(Optional.of(visit));
+        RescheduleVisitRequestDto request = new RescheduleVisitRequestDto(
+                oldDate.plusDays(1), LocalTime.of(11, 0), VisitType.ONLINE,
+                room.getUuid(), null, null);
+
+        assertThrows(BadRequestException.class, () -> service.rescheduleVisit(visitUuid, request));
+        assertEquals(VisitType.ONSITE, visit.getVisitType());
+        verify(visitRepository, never()).save(any(Visit.class));
+    }
+
+    @Test
+    void rescheduleVisit_shouldRejectOverlappingPetReservationWithoutChangingVisit() {
+        LocalDate oldDate = LocalDate.now().plusDays(1);
+        LocalDate newDate = oldDate.plusDays(1);
+        Visit visit = new Visit().schedule(vet, pet, room, oldDate.atTime(9, 0),
+                oldDate.atTime(9, 10), VisitType.ONSITE, "Visit");
+        visit.setUuid(visitUuid);
+        when(visitRepository.findByUuidForUpdate(visitUuid)).thenReturn(Optional.of(visit));
+        when(vetService.getVetWithUuidLock(vetUuid)).thenReturn(vet);
+        when(visitRepository.existsPetReservation(
+                petUuid, newDate.atTime(11, 0), newDate.atTime(11, 10), visitUuid)).thenReturn(true);
+        RescheduleVisitRequestDto request = new RescheduleVisitRequestDto(
+                newDate, LocalTime.of(11, 0), VisitType.ONSITE, room.getUuid(), null, null);
+
+        assertThrows(ConflictException.class, () -> service.rescheduleVisit(visitUuid, request));
+        assertEquals(oldDate.atTime(9, 0), visit.getStartTime());
+        verify(visitRepository, never()).save(any(Visit.class));
     }
 
     /**

@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -42,7 +43,6 @@ public class VisitServiceCommandImpl implements VisitServiceCommand {
     private final PetService petService;
     private final VetService vetService;
     private final VetAvailabilityService vetAvailabilityService;
-    private final DurationTemplateService durationTemplateService;
     private final VisitNotificationService visitNotificationService;
     private final MedicalRecordService medicalRecordService;
 
@@ -272,9 +272,10 @@ public class VisitServiceCommandImpl implements VisitServiceCommand {
 
         VisitType visitType = request.visitType() != null ? request.visitType() : visit.getVisitType();
         Room newRoom = resolveRoom(visitType, request.roomUuid());
-        int standardDurationMinutes = durationTemplateService.findByName("STANDARD").durationMinutes();
+        int existingDurationMinutes = Math.toIntExact(
+                Duration.between(visit.getStartTime(), visit.getEndTime()).toMinutes());
         LocalDateTime newVisitStart = LocalDateTime.of(request.visitDate(), request.visitTime());
-        LocalDateTime newVisitEnd = getVisitEnd(newVisitStart, standardDurationMinutes);
+        LocalDateTime newVisitEnd = getVisitEnd(newVisitStart, existingDurationMinutes);
 
         dateAndTimeValidations(newVisitStart, newVisitEnd);
         Vet vet = vetService.getVetWithUuidLock(visit.getVet().getUuid());
@@ -282,13 +283,12 @@ public class VisitServiceCommandImpl implements VisitServiceCommand {
 
         LocalDateTime oldVisitStart = visit.getStartTime();
 
-        visit.reschedule(newRoom, newVisitStart, newVisitEnd, visitType, request.description());
-
         validateVisitTime(newVisitStart, newVisitEnd);
         vetAvailabilityValidation(vet, newVisitStart, newVisitEnd, visit.getUuid());
         validateRoomAvailability(newRoom, newVisitStart, newVisitEnd, visit.getUuid());
         petAvailabilityValidation(pet, newVisitStart, newVisitEnd, visit.getUuid());
 
+        visit.reschedule(newRoom, newVisitStart, newVisitEnd, visitType, request.description());
         visitNotificationService.notifyRescheduleVisitParticipants(oldVisitStart, visit, pet, vet, newVisitStart);
         visitRepository.save(visit);
         log.info("Visit rescheduled successfully. visitUuid={}, oldVisitStart={}, newVisitStart={}",
