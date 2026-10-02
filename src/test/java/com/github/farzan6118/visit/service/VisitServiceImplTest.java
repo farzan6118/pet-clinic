@@ -109,7 +109,8 @@ class VisitServiceImplTest {
         LocalDate visitDate = LocalDate.now().plusDays(1);
         LocalTime visitTime = LocalTime.of(10, 0);
         CreateVisitRequestDto request = new CreateVisitRequestDto(
-                petUuid, vetUuid, visitDate, visitTime, VisitType.ONSITE, 15, "General examination");
+                petUuid, vetUuid, room.getUuid(), visitDate, visitTime,
+                VisitType.ONSITE, 15, "General examination");
 
         when(vetService.getVetWithUuidLock(vetUuid)).thenReturn(vet);
         when(petService.getEntityByUuid(petUuid)).thenReturn(pet);
@@ -150,7 +151,8 @@ class VisitServiceImplTest {
         LocalDate newDate = LocalDate.now().plusDays(1);
         LocalTime newTime = LocalTime.of(11, 0);
         RescheduleVisitRequestDto request = new RescheduleVisitRequestDto(
-                newDate, newTime, VisitType.ONSITE, "Updated visit", "Owner requested another time");
+                newDate, newTime, VisitType.ONSITE, room.getUuid(),
+                "Updated visit", "Owner requested another time");
 
         when(visitRepository.findByUuidForUpdate(visitUuid)).thenReturn(Optional.of(visit));
         when(vetService.getVetWithUuidLock(vetUuid)).thenReturn(vet);
@@ -226,7 +228,8 @@ class VisitServiceImplTest {
     void bookVisit_shouldNotSaveWhenVetHasNoAvailability() {
         LocalDate date = LocalDate.now().plusDays(1);
         CreateVisitRequestDto request = new CreateVisitRequestDto(
-                petUuid, vetUuid, date, LocalTime.of(10, 0), VisitType.ONSITE, 15, "Checkup");
+                petUuid, vetUuid, room.getUuid(), date, LocalTime.of(10, 0),
+                VisitType.ONSITE, 15, "Checkup");
         when(vetService.getVetWithUuidLock(vetUuid)).thenReturn(vet);
         when(petService.getEntityByUuid(petUuid)).thenReturn(pet);
         when(roomService.getAvailableRoomByVisitTypeAndVisitCategory(
@@ -244,7 +247,8 @@ class VisitServiceImplTest {
     void bookVisit_shouldNotSaveWhenClinicIsClosed() {
         LocalDate date = LocalDate.now().plusDays(1);
         CreateVisitRequestDto request = new CreateVisitRequestDto(
-                petUuid, vetUuid, date, LocalTime.of(7, 0), VisitType.ONSITE, 15, "Checkup");
+                petUuid, vetUuid, room.getUuid(), date, LocalTime.of(7, 0),
+                VisitType.ONSITE, 15, "Checkup");
         when(vetService.getVetWithUuidLock(vetUuid)).thenReturn(vet);
         when(petService.getEntityByUuid(petUuid)).thenReturn(pet);
         when(roomService.getAvailableRoomByVisitTypeAndVisitCategory(

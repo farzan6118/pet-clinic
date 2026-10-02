@@ -200,7 +200,7 @@ public class FillInitialRecords implements CommandLineRunner {
         LocalDate startDate = LocalDate.now().minusDays(1);
 
         int[][] schedules = {
-                {8, 0, 16, 0},
+                {9, 15, 16, 0},
                 {9, 0, 17, 0},
                 {10, 0, 18, 0}
         };
@@ -218,17 +218,11 @@ public class FillInitialRecords implements CommandLineRunner {
                     continue;
                 }
 
-                int startHour = schedule[0] + ((i + vetIndex) % 2);
-                int startMinute = ((i + vetIndex) % 2) * 15;
-
-                int endHour = schedule[2] - ((i + vetIndex) % 2);
-                int endMinute = ((i + vetIndex) % 2) * 15;
-
                 vetAvailabilityRepository.save(
                         availability(
                                 vet,
-                                date.atTime(startHour, startMinute),
-                                date.atTime(endHour, endMinute)
+                                date.atTime(schedule[0], schedule[1]),
+                                date.atTime(schedule[2], schedule[3])
                         )
                 );
             }
