@@ -18,7 +18,7 @@ The application uses PostgreSQL through Spring Data JPA and Hibernate. Follow th
 
 Visit booking/rescheduling is concurrency-sensitive. The current domain checks clinic hours and closed days, veterinarian availability, and overlapping veterinarian, pet, and room reservations. `Visit` and `VetAvailability` use `DateTimeRange`.
 
-The code uses pessimistic JPA locks in selected repository methods (including veterinarian and visit lookups) and custom repository queries for interval overlap. Before changing these:
+The code uses pessimistic JPA locks in selected repository methods (including Room, Vet, Pet, and Visit lookups) and custom QueryDSL queries for interval overlap. Booking locks selected resources in Room, Vet, then Pet order; rescheduling first locks the Visit, then follows the resource lock order. Before changing these:
 
 1. Identify which shared rows compete and which operation obtains each lock.
 2. Preserve the existing transaction boundary and lock order unless a reviewed change requires otherwise.

@@ -2,6 +2,7 @@ package com.github.farzan6118.auth.controller;
 
 import com.github.farzan6118.auth.dto.request.LoginRequestDto;
 import com.github.farzan6118.infrastructure.keycloak.service.LoginService;
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.representations.AccessTokenResponse;
@@ -21,6 +22,7 @@ public class AuthController {
     private final LoginService loginService;
 
     @PostMapping
+    @Hidden
     public ResponseEntity<AccessTokenResponse> login(@Valid @RequestBody LoginRequestDto request) {
         AccessTokenResponse response = loginService.getAccessToken(request.username(), request.password());
 

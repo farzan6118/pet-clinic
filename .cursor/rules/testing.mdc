@@ -5,20 +5,21 @@ alwaysApply: true
 
 # Testing
 
-The project uses Maven, JUnit Jupiter, Mockito, and Spring Boot Test. Follow the current tests under `src/test/java/com/github/farzan6118/petclinic/` and test dependencies in `pom.xml`.
+The project uses Maven, JUnit Jupiter, Mockito, and Spring Boot Test. Follow the current tests under `src/test/java/com/github/farzan6118/` and test dependencies in `pom.xml`.
 
 ## Current test layout
 
 - Most tests are focused service tests using `@ExtendWith(MockitoExtension.class)`, `@Mock`, and `@InjectMocks`.
 - Existing service tests cover owner, pet, species, medical-record, vet, vet-availability, duration-template, and visit behavior.
-- `PetClinicApplicationTests` is a `@SpringBootTest` context-load test. The normal application profile uses local PostgreSQL configuration, so a full test run may need a reachable/configured PostgreSQL instance.
-- There is no configured Testcontainers SQL Server setup, Failsafe integration-test phase, or established `*IT` suite in this repository. Do not write instructions or tests assuming those exist.
+- `PetClinicApplicationTests` is a `@SpringBootTest` context-load test, and `appointment/controller/VisitIntegrationTest` exercises booking and rescheduling over MockMvc with PostgreSQL persistence. These tests use the configured local PostgreSQL database, so a full test run may need a reachable/configured PostgreSQL instance.
+- There is no configured Testcontainers setup or Failsafe integration-test phase. Do not write instructions or tests assuming those exist.
 
 ## What to test
 
 - For business-rule changes, add or update focused service tests for success, validation/missing-resource cases, status transitions, and relevant conflicts.
 - Mock the service's own repositories and external/service dependencies, following adjacent tests. Verify meaningful state, returned values, and important collaborator calls.
 - For scheduling changes, cover the affected availability, vet/pet/room overlap, clinic-hours, lock-aware repository call, and notification behavior as appropriate to the change.
+- Booking and rescheduling share the `clinic.availability.time-block-minutes` setting for duration rounding. Include coverage for onsite Room requirements and rejection of Rooms for remote visits when those rules change.
 - For HTTP binding/status/serialization behavior, use an appropriate Spring web test if the requirement needs it. Do not substitute a mocked-controller unit test for service behavior, and do not assume a database-container harness exists.
 - Avoid tests that only restate Bean Validation annotations or call a JPA repository method in isolation.
 

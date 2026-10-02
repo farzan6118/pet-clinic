@@ -157,13 +157,21 @@ All API routes use the `/api` prefix. Request and response bodies use DTOs; pers
 Visit routes include `POST /api/visits`, `PUT /api/visits/{uuid}`, `DELETE /api/visits/{uuid}`, `PATCH /api/visits/{uuid}/complete`, `GET /api/visits/{uuid}`, `GET /api/visits/page`, and `GET /api/visits/search`. Consult Swagger UI or controller DTOs for request fields, response shapes, validation rules, and query parameters.
 
 `GET /api/clinics/availability` returns the weekly schedule from Monday through Sunday. Each entry has `dayOfWeek`,
-`available`, `openingTime`, and `closingTime`. Closed days have null times. It uses `clinic.availibility.working-hours`
-and `clinic.availibility.close-days` from the active application YAML profile.
+`available`, `openingTime`, and `closingTime`. Closed days have null times. It uses `clinic.availability.working-hours`
+and `clinic.availability.close-days` from the active application YAML profile.
+
+`GET /api/rooms/{roomUuid}/availability?date=YYYY-MM-DD` returns the Room's time blocks within clinic working hours
+for that date. `GET /api/vets/{vetUuid}/availability?date=YYYY-MM-DD` returns blocks within the Vet's active availability
+intervals for that date. Both use `clinic.availability.time-block-minutes` (5 minutes by default), include booked blocks
+with their `visitUuid`, and use strict interval overlap. These responses cover each applicable availability window;
+they do not pad the timeline with blocks outside that window. The response status is `AVAILABLE` or `BOOKED` for
+returned blocks.
 
 `GET /api/visits/available-slots` accepts `vetUuid`, `petUuid`, `date` (`YYYY-MM-DD`), `visitType`, `durationMinutes`
-(default `15`), and `intervalMinutes` (default `15`). It returns candidate start/end date-times and the selected room
-UUID, excluding slots blocked by clinic hours, veterinarian/pet reservations, or room reservations. Durations must match
-a configured duration template.
+(default `15`), and `intervalMinutes` (default `15`). It returns candidate start/end date-times and a room UUID for
+applicable onsite slots, excluding slots blocked by clinic hours, veterinarian/pet reservations, or room reservations.
+Booking accepts a duration in minutes (default `15`) and rounds it up to a multiple of the configured availability block
+size. Rescheduling preserves the current visit duration, applying the same block rounding.
 
 `GET /api/visits/available-slots/range` accepts the same parameters with `dateFrom` and `dateTo` (inclusive, at most 31
 days) instead of `date`, returning all available slots in chronological order.
@@ -182,20 +190,21 @@ Owner / Vet ── Person ── Profile
 ```
 
 - `DateTimeRange` is a JPA embeddable with required start and end timestamps, duration/date/time helpers, validity checks, same-day checks, and overlap checks.
-- `Visit` scheduling and rescheduling require a positive, same-day interval. Completion changes the end timestamp and status.
-- `VisitServiceCommandImpl` checks clinic opening hours and closed days, veterinarian availability, and overlapping veterinarian, pet, and room reservations. It locks the veterinarian during booking and locks an existing visit during rescheduling/completion.
+- `Visit` scheduling and rescheduling require a positive, same-day interval. Booking requires a Room for `ONSITE` visits and rejects a Room for `ONLINE` and `OFFSITE` visits. Completion changes the end timestamp and status.
+- `VisitServiceCommandImpl` checks clinic opening hours and closed days, veterinarian availability, and overlapping veterinarian, pet, and room reservations. Booking locks a selected Room, the Vet, and the Pet; rescheduling locks the Visit, selected Room, Vet, and Pet. Preserve transaction and lock ordering when changing these operations.
+- Daily availability uses `ClinicAvailabilityService` for Rooms and active `VetAvailability` intervals for Vets, plus QueryDSL overlap queries for Visits. The configured block size also determines rounded booking/rescheduling duration.
 - `FillInitialRecords` is a `CommandLineRunner` and only seeds each data group when its repository is empty.
 - Common entity persistence includes UUIDs, status/soft-delete behavior, and audit timestamps. Some entities also use Hibernate Envers.
 - Medical-record creation is connected to visit completion. A standalone medical-record history API is not currently exposed.
 
 ## Tests
 
-Run the full test suite with `./mvnw test` or `mvnw.cmd test`. The suite includes unit tests using JUnit 5 and Mockito plus Spring context tests. Spring context tests use the configured local PostgreSQL database, so PostgreSQL and suitable profile configuration must be available. Some integration behaviors, such as concurrent booking against a real database, need dedicated tests.
+Run the full test suite with `./mvnw test` or `mvnw.cmd test`. The suite includes unit tests using JUnit 5 and Mockito, a Spring context test, and `VisitIntegrationTest`, which exercises HTTP booking/rescheduling and persistence using the configured local PostgreSQL database. PostgreSQL and suitable profile configuration must be available. Concurrent booking against a real database still merits dedicated integration coverage.
 
 ## Repository layout
 
 ```text
-src/main/java/com/github/farzan6118/petclinic/
+src/main/java/com/github/farzan6118/
   appointment/      visits, scheduling, duration templates, search
   auth/             login and current-user endpoints
   clinic/           clinics, rooms, room types
@@ -221,4 +230,4 @@ src/test/java/         unit and Spring context tests
 - **Frontend is not included.** This repository contains the backend service only.
 - **Development seed data uses sample identities and addresses.** It is not production or customer data.
 
-For deeper implementation notes and maintenance guidance, see [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md). That file is working context for development sessions; this README is the standalone project guide.
+For detailed implementation notes and change guidance, see [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) and the relevant `.cursor/rules/` files. Verify both against current source when they describe behavior that may have changed.

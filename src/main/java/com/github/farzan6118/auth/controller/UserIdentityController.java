@@ -2,6 +2,7 @@ package com.github.farzan6118.auth.controller;
 
 import com.github.farzan6118.auth.dto.response.UserInfoResponseDto;
 import com.github.farzan6118.infrastructure.keycloak.service.UserIdentityService;
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,6 +18,7 @@ public class UserIdentityController {
 
     private final UserIdentityService userIdentityService;
 
+    @Hidden
     @GetMapping("/me")
     public ResponseEntity<UserInfoResponseDto> getCurrentUser(@AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok(userIdentityService.getCurrentUserInfo(jwt)

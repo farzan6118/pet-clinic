@@ -18,9 +18,10 @@ and revise it when the repository's dependencies or architecture change.
 
 ## Source of truth
 
-Use the checked-in `README.md`, `PROJECT_CONTEXT.md`, `pom.xml`, controllers/DTOs, service/repository implementations,
-and tests as the source of truth. Verify potentially stale documentation against source before relying on it.
+Use `README.md`, `PROJECT_CONTEXT.md`, `pom.xml`, controllers/DTOs, service/repository implementations, and tests as
+project references. Source and tests are authoritative when prose differs; verify potentially stale documentation before
+relying on it.
 
-The application is a single Spring Boot REST backend using PostgreSQL. It does not currently have the copied template's
+The application is a single Spring Boot REST backend using PostgreSQL. It does not currently have unrelated template's
 SQL Server, gRPC, Kafka, branch/business scope model, generic base-service hierarchy, or Testcontainers integration-test
 setup. Do not add those assumptions to future rules without an actual project change.

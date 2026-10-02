@@ -9,7 +9,7 @@ This repository is a single Spring Boot REST backend for veterinary clinic opera
 
 ## Package structure
 
-The root package is `com.github.farzan6118.petclinic`.
+The root package is `com.github.farzan6118`.
 
 - `appointment`: visits, duration templates, scheduling, search, and visit notification orchestration
 - `auth`: login and current-user HTTP endpoints and DTOs
@@ -45,6 +45,8 @@ Follow the actual feature conventions. This project has service interfaces and i
 ## Scheduling is domain behavior
 
 `appointment.Visit` and `vet.VetAvailability` use the shared `common.valueobject.DateTimeRange`. Read the command service, availability service, repositories, DTOs, and tests together before changing scheduling. Preserve the existing clinic-hours, availability, vet/pet/room conflict, and locking behavior relevant to the operation.
+
+Visit duration is accepted in minutes and rounded up to a multiple of `clinic.availability.time-block-minutes` (default 5). `ONSITE` visits require a Room UUID; `ONLINE` and `OFFSITE` visits reject one. Daily availability is exposed at `/api/rooms/{uuid}/availability?date=...` and `/api/vets/{uuid}/availability?date=...`; Room windows follow shared clinic hours and Vet windows follow active Vet availability intervals. Both use QueryDSL Visit overlap queries and return blocks only within their applicable windows.
 
 ## Change discipline
 
