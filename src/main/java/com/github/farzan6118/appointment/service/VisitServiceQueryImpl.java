@@ -43,15 +43,15 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class VisitServiceQueryImpl implements VisitServiceQuery {
 
-    private final VisitRepository visitRepository;
-    private final VisitMapper visitMapper;
-    private final PageMapper pageMapper;
-    private final VetAvailabilityService vetAvailabilityService;
-    private final VetService vetService;
-    private final PetService petService;
-    private final RoomService roomService;
     private final DurationTemplateService durationTemplateService;
+    private final VetAvailabilityService vetAvailabilityService;
     private final ClinicProperties clinicProperties;
+    private final VisitRepository visitRepository;
+    private final RoomService roomService;
+    private final PetService petService;
+    private final VetService vetService;
+    private final PageMapper pageMapper;
+    private final VisitMapper visitMapper;
 
     @Override
     public VisitResponseDto findByUuid(UUID uuid) {
@@ -73,8 +73,7 @@ public class VisitServiceQueryImpl implements VisitServiceQuery {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponseDto<VisitResponseDto> advancedSearch(
-            VisitAdvancedSearch request) {
+    public PageResponseDto<VisitResponseDto> advancedSearch(VisitAdvancedSearch request) {
         Pageable pageable = pageMapper.getPageable(
                 request.pageNumber(), request.pageSize(),
                 request.sortBy(), request.sortDirection());
@@ -180,6 +179,18 @@ public class VisitServiceQueryImpl implements VisitServiceQuery {
         return vetVisits.stream().noneMatch(visit -> overlapsActiveVisit(visit, start, end, false))
                 && petVisits.stream().noneMatch(visit -> overlapsActiveVisit(visit, start, end, false))
                 && roomVisits.stream().noneMatch(visit -> overlapsActiveVisit(visit, start, end, true));
+    }
+
+    private boolean isVetAvailable(List<Visit> vetVisits, LocalDateTime start, LocalDateTime end){
+        return vetVisits.stream().noneMatch(visit -> overlapsActiveVisit(visit, start, end, false));
+    }
+
+    private boolean isPetAvailable(List<Visit> petVisits, LocalDateTime start, LocalDateTime end){
+        return petVisits.stream().noneMatch(visit -> overlapsActiveVisit(visit, start, end, false));
+    }
+
+    private boolean isRoomAvailable(List<Visit> roomVisits, LocalDateTime start, LocalDateTime end){
+        return roomVisits.stream().noneMatch(visit -> overlapsActiveVisit(visit, start, end, true));
     }
 
     private boolean overlapsActiveVisit(
