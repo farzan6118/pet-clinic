@@ -3,12 +3,10 @@ package com.github.farzan6118.appointment.service;
 import com.github.farzan6118.appointment.dto.request.CompleteVisitRequestDto;
 import com.github.farzan6118.appointment.dto.request.CreateVisitRequestDto;
 import com.github.farzan6118.appointment.dto.request.RescheduleVisitRequestDto;
-import com.github.farzan6118.appointment.dto.response.DurationTemplateResponseDto;
 import com.github.farzan6118.appointment.model.Visit;
 import com.github.farzan6118.appointment.repository.VisitRepository;
 import com.github.farzan6118.clinic.model.Room;
 import com.github.farzan6118.clinic.service.RoomService;
-import com.github.farzan6118.common.enums.VisitCategory;
 import com.github.farzan6118.common.enums.VisitStatus;
 import com.github.farzan6118.common.enums.VisitType;
 import com.github.farzan6118.common.exception.BadRequestException;
@@ -53,17 +51,16 @@ public class VisitServiceCommandImpl implements VisitServiceCommand {
      */
     @Override
     public void bookVisit(CreateVisitRequestDto request) {
-        DurationTemplateResponseDto standardDuration = durationTemplateService
-                .findByDurationMinutes(request.durationMinutes() != null ? request.durationMinutes() : 15);
+        Room room = resolveRoom(request.visitType(), request.roomUuid());
+        int requestedDurationMinutes = request.durationMinutes() != null ? request.durationMinutes() : 15;
 
         LocalDateTime visitStart = LocalDateTime.of(request.visitDate(), request.visitTime());
-        LocalDateTime visitEnd = getVisitEnd(visitStart, standardDuration);
+        LocalDateTime visitEnd = getVisitEnd(visitStart, requestedDurationMinutes);
 
         dateAndTimeValidations(visitStart, visitEnd);
 
         Vet vet = vetService.getVetWithUuidLock(request.vetUuid());
-        Pet pet = petService.getEntityByUuid(request.petUuid());
-        Room room = roomService.getAvailableRoomByVisitTypeAndVisitCategory(request.visitType(), VisitCategory.ROUTINE);
+        Pet pet = petService.getEntityByUuidForUpdate(request.petUuid());
 
         Visit visit = new Visit()
                 .schedule(vet, pet, room, visitStart, visitEnd, request.visitType(), request.description());
@@ -84,6 +81,24 @@ public class VisitServiceCommandImpl implements VisitServiceCommand {
                 room != null ? room.getUuid() : null, visitStart,
                 visitEnd
         );
+    }
+
+    private Room resolveRoom(VisitType visitType, UUID roomUuid) {
+        if (visitType == VisitType.ONSITE && roomUuid == null) {
+            throw new BadRequestException("room.uuid.is.required.for.onsite.visit");
+        }
+        if (visitType != VisitType.ONSITE && roomUuid != null) {
+            throw new BadRequestException("room.uuid.must.be.empty.for.remote.visit");
+        }
+        if (roomUuid == null) {
+            return null;
+        }
+
+        Room room = roomService.getEntityByUuidForUpdate(roomUuid);
+        if (!room.isActive() || room.getClinic() == null || !room.getClinic().isActive()) {
+            throw new ConflictException("The selected room is not available");
+        }
+        return room;
     }
 
     private void vetAvailabilityValidation(Vet vet, LocalDateTime visitStart, LocalDateTime visitEnd, UUID visitUuid) {
@@ -255,18 +270,17 @@ public class VisitServiceCommandImpl implements VisitServiceCommand {
         Visit visit = visitRepository.findByUuidForUpdate(uuid).orElseThrow(
                 () -> new ResourceNotFoundException("Visit not found", "Visit not found: " + uuid));
 
-        DurationTemplateResponseDto standardDuration = durationTemplateService.findByName("STANDARD");
+        VisitType visitType = request.visitType() != null ? request.visitType() : visit.getVisitType();
+        Room newRoom = resolveRoom(visitType, request.roomUuid());
+        int standardDurationMinutes = durationTemplateService.findByName("STANDARD").durationMinutes();
         LocalDateTime newVisitStart = LocalDateTime.of(request.visitDate(), request.visitTime());
-        LocalDateTime newVisitEnd = getVisitEnd(newVisitStart, standardDuration);
+        LocalDateTime newVisitEnd = getVisitEnd(newVisitStart, standardDurationMinutes);
 
         dateAndTimeValidations(newVisitStart, newVisitEnd);
-        Pet pet = visit.getPet();
-        VisitType visitType = request.visitType() != null ? request.visitType() : visit.getVisitType();
         Vet vet = vetService.getVetWithUuidLock(visit.getVet().getUuid());
+        Pet pet = petService.getEntityByUuidForUpdate(visit.getPet().getUuid());
 
         LocalDateTime oldVisitStart = visit.getStartTime();
-
-        Room newRoom = roomService.getAvailableRoomByVisitTypeAndVisitCategory(visitType, VisitCategory.ROUTINE);
 
         visit.reschedule(newRoom, newVisitStart, newVisitEnd, visitType, request.description());
 
@@ -286,8 +300,14 @@ public class VisitServiceCommandImpl implements VisitServiceCommand {
                 () -> new ResourceNotFoundException("Visit not found", "Visit not found: " + uuid));
     }
 
-    private LocalDateTime getVisitEnd(LocalDateTime visitStart, DurationTemplateResponseDto duration) {
-        return visitStart.plusMinutes(duration.durationMinutes());
+    private LocalDateTime getVisitEnd(LocalDateTime visitStart, int requestedMinutes) {
+        int blockMinutes = clinicProperties.timeBlockMinutes();
+        if (blockMinutes <= 0) {
+            throw new BadRequestException("Availability time block must be positive");
+        }
+        int roundedMinutes = Math.multiplyExact(
+                (requestedMinutes - 1) / blockMinutes + 1, blockMinutes);
+        return visitStart.plusMinutes(roundedMinutes);
     }
 
 }

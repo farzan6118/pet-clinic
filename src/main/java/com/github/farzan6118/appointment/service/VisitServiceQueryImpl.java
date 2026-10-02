@@ -4,7 +4,6 @@ import com.github.farzan6118.appointment.dto.request.AvailableVisitSlotsRangeReq
 import com.github.farzan6118.appointment.dto.request.AvailableVisitSlotsRequestDto;
 import com.github.farzan6118.appointment.dto.request.VisitAdvancedSearch;
 import com.github.farzan6118.appointment.dto.response.AvailableVisitSlotResponseDto;
-import com.github.farzan6118.appointment.dto.response.DurationTemplateResponseDto;
 import com.github.farzan6118.appointment.dto.response.VisitResponseDto;
 import com.github.farzan6118.appointment.mapper.VisitMapper;
 import com.github.farzan6118.appointment.model.Visit;
@@ -43,7 +42,6 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class VisitServiceQueryImpl implements VisitServiceQuery {
 
-    private final DurationTemplateService durationTemplateService;
     private final VetAvailabilityService vetAvailabilityService;
     private final ClinicProperties clinicProperties;
     private final VisitRepository visitRepository;
@@ -95,8 +93,12 @@ public class VisitServiceQueryImpl implements VisitServiceQuery {
     public List<AvailableVisitSlotResponseDto> findAvailableSlots(AvailableVisitSlotsRequestDto request) {
         vetService.getEntityByUuid(request.vetUuid());
         petService.getEntityByUuid(request.petUuid());
-        DurationTemplateResponseDto duration = durationTemplateService
-                .findByDurationMinutes(request.durationMinutes());
+        int blockMinutes = clinicProperties.timeBlockMinutes();
+        if (blockMinutes <= 0) {
+            throw new BadRequestException("Availability time block must be positive");
+        }
+        int durationMinutes = Math.multiplyExact(
+                (request.durationMinutes() - 1) / blockMinutes + 1, blockMinutes);
 
         Room room = roomService.getRoomForAvailabilitySearch(request.visitType());
         LocalDateTime dayStart = request.date().atStartOfDay();
@@ -130,9 +132,9 @@ public class VisitServiceQueryImpl implements VisitServiceQuery {
                 start = start.plusMinutes(intervals * request.intervalMinutes());
             }
 
-            while (!start.plusMinutes(duration.durationMinutes())
+            while (!start.plusMinutes(durationMinutes)
                     .isAfter(availability.getTimeRange().getEndDateTime())) {
-                LocalDateTime end = start.plusMinutes(duration.durationMinutes());
+                LocalDateTime end = start.plusMinutes(durationMinutes);
                 if (start.isBefore(dayEnd)
                         && isWithinClinicHours(start, end)
                         && isAvailable(vetVisits, petVisits, roomVisits, start, end)) {

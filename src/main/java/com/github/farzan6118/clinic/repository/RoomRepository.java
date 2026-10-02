@@ -15,6 +15,10 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
 
     Optional<Room> findByUuid(UUID uuid);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select room from Room room where room.uuid = :uuid")
+    Optional<Room> findByUuidForUpdate(@Param("uuid") UUID uuid);
+
     boolean existsByRoomNumberIgnoreCase(String code);
 
     boolean existsByRoomNumberIgnoreCaseAndUuidNot(String roomNumber, UUID uuid);

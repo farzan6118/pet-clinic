@@ -9,6 +9,7 @@ import com.github.farzan6118.appointment.repository.VisitRepository;
 import com.github.farzan6118.appointment.service.DurationTemplateService;
 import com.github.farzan6118.appointment.service.VisitServiceCommandImpl;
 import com.github.farzan6118.clinic.model.Room;
+import com.github.farzan6118.clinic.model.Clinic;
 import com.github.farzan6118.clinic.service.RoomService;
 import com.github.farzan6118.common.enums.VisitCategory;
 import com.github.farzan6118.common.enums.VisitStatus;
@@ -86,10 +87,11 @@ class VisitServiceImplTest {
         room = new Room();
         room.setUuid(UUID.randomUUID());
         room.setName("Examination room");
+        room.setActive(true);
+        Clinic clinic = new Clinic();
+        clinic.setActive(true);
+        room.setClinic(clinic);
 
-        lenient().when(durationTemplateService.findByDurationMinutes(15))
-                .thenReturn(new DurationTemplateResponseDto(
-                        UUID.randomUUID(), "QUICK", 15, "Quick visit"));
         lenient().when(durationTemplateService.findByName("STANDARD"))
                 .thenReturn(new DurationTemplateResponseDto(
                         UUID.randomUUID(), "STANDARD", 30, "Standard visit"));
@@ -98,6 +100,9 @@ class VisitServiceImplTest {
         lenient().when(clinicProperties.closeDays()).thenReturn(java.util.Set.of());
         lenient().when(clinicProperties.workingHours())
                 .thenReturn(new ClinicProperties.WorkingHours(LocalTime.of(8, 0), LocalTime.of(17, 0)));
+        lenient().when(clinicProperties.timeBlockMinutes()).thenReturn(5);
+        lenient().when(roomService.getEntityByUuidForUpdate(room.getUuid())).thenReturn(room);
+        lenient().when(petService.getEntityByUuidForUpdate(petUuid)).thenReturn(pet);
     }
 
     /**
@@ -113,9 +118,6 @@ class VisitServiceImplTest {
                 VisitType.ONSITE, 15, "General examination");
 
         when(vetService.getVetWithUuidLock(vetUuid)).thenReturn(vet);
-        when(petService.getEntityByUuid(petUuid)).thenReturn(pet);
-        when(roomService.getAvailableRoomByVisitTypeAndVisitCategory(
-                VisitType.ONSITE, VisitCategory.ROUTINE)).thenReturn(room);
         when(visitRepository.save(any(Visit.class))).thenAnswer(invocation -> {
             Visit visit = invocation.getArgument(0);
             visit.setUuid(visitUuid);
@@ -156,8 +158,6 @@ class VisitServiceImplTest {
 
         when(visitRepository.findByUuidForUpdate(visitUuid)).thenReturn(Optional.of(visit));
         when(vetService.getVetWithUuidLock(vetUuid)).thenReturn(vet);
-        when(roomService.getAvailableRoomByVisitTypeAndVisitCategory(
-                VisitType.ONSITE, VisitCategory.ROUTINE)).thenReturn(room);
 
         service.rescheduleVisit(visitUuid, request);
 
@@ -231,9 +231,6 @@ class VisitServiceImplTest {
                 petUuid, vetUuid, room.getUuid(), date, LocalTime.of(10, 0),
                 VisitType.ONSITE, 15, "Checkup");
         when(vetService.getVetWithUuidLock(vetUuid)).thenReturn(vet);
-        when(petService.getEntityByUuid(petUuid)).thenReturn(pet);
-        when(roomService.getAvailableRoomByVisitTypeAndVisitCategory(
-                VisitType.ONSITE, VisitCategory.ROUTINE)).thenReturn(room);
         when(vetAvailabilityService.findAvailableByUuidAndTimeRange(any(), any(), any()))
                 .thenReturn(Optional.empty());
 
@@ -250,12 +247,75 @@ class VisitServiceImplTest {
                 petUuid, vetUuid, room.getUuid(), date, LocalTime.of(7, 0),
                 VisitType.ONSITE, 15, "Checkup");
         when(vetService.getVetWithUuidLock(vetUuid)).thenReturn(vet);
-        when(petService.getEntityByUuid(petUuid)).thenReturn(pet);
-        when(roomService.getAvailableRoomByVisitTypeAndVisitCategory(
-                VisitType.ONSITE, VisitCategory.ROUTINE)).thenReturn(room);
 
         assertThrows(BadRequestException.class, () -> service.bookVisit(request));
 
+        verify(visitRepository, never()).save(any(Visit.class));
+    }
+
+    @Test
+    void bookVisit_shouldRoundDurationUpToAvailabilityBlock() {
+        LocalDate date = LocalDate.now().plusDays(1);
+        CreateVisitRequestDto request = new CreateVisitRequestDto(
+                petUuid, vetUuid, room.getUuid(), date, LocalTime.of(10, 0),
+                VisitType.ONSITE, 16, "Checkup");
+        when(vetService.getVetWithUuidLock(vetUuid)).thenReturn(vet);
+        when(visitRepository.save(any(Visit.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.bookVisit(request);
+
+        ArgumentCaptor<Visit> visitCaptor = ArgumentCaptor.forClass(Visit.class);
+        verify(visitRepository).save(visitCaptor.capture());
+        assertEquals(LocalDateTime.of(date, LocalTime.of(10, 20)), visitCaptor.getValue().getEndTime());
+    }
+
+    @Test
+    void bookVisit_shouldRequireRoomForOnsiteVisit() {
+        CreateVisitRequestDto request = new CreateVisitRequestDto(
+                petUuid, vetUuid, null, LocalDate.now().plusDays(1), LocalTime.of(10, 0),
+                VisitType.ONSITE, 15, "Checkup");
+
+        assertThrows(BadRequestException.class, () -> service.bookVisit(request));
+        verifyNoInteractions(visitRepository);
+    }
+
+    @Test
+    void bookVisit_shouldRejectRoomForOnlineVisit() {
+        CreateVisitRequestDto request = new CreateVisitRequestDto(
+                petUuid, vetUuid, room.getUuid(), LocalDate.now().plusDays(1), LocalTime.of(10, 0),
+                VisitType.ONLINE, 15, "Checkup");
+
+        assertThrows(BadRequestException.class, () -> service.bookVisit(request));
+        verifyNoInteractions(visitRepository);
+    }
+
+    @Test
+    void bookVisit_shouldRejectPetConflictEvenWhenOtherResourcesDiffer() {
+        LocalDate date = LocalDate.now().plusDays(1);
+        CreateVisitRequestDto request = new CreateVisitRequestDto(
+                petUuid, vetUuid, room.getUuid(), date, LocalTime.of(10, 0),
+                VisitType.ONSITE, 15, "Checkup");
+        when(vetService.getVetWithUuidLock(vetUuid)).thenReturn(vet);
+        when(visitRepository.existsPetReservation(
+                petUuid, LocalDateTime.of(date, LocalTime.of(10, 0)),
+                LocalDateTime.of(date, LocalTime.of(10, 15)), null)).thenReturn(true);
+
+        assertThrows(ConflictException.class, () -> service.bookVisit(request));
+        verify(visitRepository, never()).save(any(Visit.class));
+    }
+
+    @Test
+    void bookVisit_shouldRejectRoomConflictWithAnotherVet() {
+        LocalDate date = LocalDate.now().plusDays(1);
+        CreateVisitRequestDto request = new CreateVisitRequestDto(
+                petUuid, vetUuid, room.getUuid(), date, LocalTime.of(10, 0),
+                VisitType.ONSITE, 15, "Checkup");
+        when(vetService.getVetWithUuidLock(vetUuid)).thenReturn(vet);
+        when(visitRepository.existsRoomReservation(
+                room.getUuid(), LocalDateTime.of(date, LocalTime.of(10, 0)),
+                LocalDateTime.of(date, LocalTime.of(10, 15)), null)).thenReturn(true);
+
+        assertThrows(ConflictException.class, () -> service.bookVisit(request));
         verify(visitRepository, never()).save(any(Visit.class));
     }
 

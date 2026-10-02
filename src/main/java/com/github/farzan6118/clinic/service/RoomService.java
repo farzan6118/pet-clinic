@@ -19,6 +19,8 @@ public interface RoomService {
 
     Room getEntityByUuid(UUID uuid);
 
+    Room getEntityByUuidForUpdate(UUID uuid);
+
     List<UuidAndTitleResponseDto> findAllIdAndTitle();
 
     PageResponseDto<RoomResponseDto> findAll(PageAndSortRequestDto requestDto);

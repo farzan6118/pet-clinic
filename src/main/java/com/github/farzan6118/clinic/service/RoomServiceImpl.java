@@ -54,6 +54,12 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
+    public Room getEntityByUuidForUpdate(UUID uuid) {
+        return roomRepository.findByUuidForUpdate(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("room not found"));
+    }
+
+    @Override
     public PageResponseDto<RoomResponseDto> findAll(PageAndSortRequestDto requestDto) {
         Pageable pageable = pageMapper.getPageable(requestDto);
         Page<Room> roomPage = roomRepository.findAll(pageable);

@@ -24,6 +24,8 @@ public interface PetService {
 
     Pet getEntityByUuid(UUID uuid);
 
+    Pet getEntityByUuidForUpdate(UUID uuid);
+
     List<PetResponseDto> getPetListByOwnerUuid(UUID uuid);
 
     MedicalRecordResponseDto getMedicalRecordByPetUuid(UUID uuid);

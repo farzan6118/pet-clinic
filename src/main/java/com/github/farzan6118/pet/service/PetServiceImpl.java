@@ -125,6 +125,12 @@ public class PetServiceImpl implements PetService {
     }
 
     @Override
+    public Pet getEntityByUuidForUpdate(UUID uuid) {
+        return petRepository.findByUuidForUpdate(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("pet not found"));
+    }
+
+    @Override
     public List<PetResponseDto> getPetListByOwnerUuid(UUID uuid) {
         return petRepository.findByOwnerUuid(uuid)
                 .stream()

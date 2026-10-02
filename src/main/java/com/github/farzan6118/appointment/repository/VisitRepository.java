@@ -73,7 +73,7 @@ public interface VisitRepository extends JpaRepository<Visit, Long>, VisitQueryR
             where v.room.uuid = :roomUuid
             and v.status not in (VisitStatus.CANCELLED,
                                  VisitStatus.COMPLETED)
-            and v.timeRange.startDateTime <= :visitEnd
+            and v.timeRange.startDateTime < :visitEnd
             and v.timeRange.endDateTime > :visitStart
             and (:excludedVisitUuid is null or v.uuid <> :excludedVisitUuid)
             """)
