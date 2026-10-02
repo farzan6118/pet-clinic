@@ -166,4 +166,15 @@ public class VisitQueryRepositoryImpl implements VisitQueryRepository {
                 .orderBy(visit.timeRange.startDateTime.asc())
                 .fetch();
     }
+
+    @Override
+    public List<Visit> findOverlappingRoomVisits(UUID roomUuid, LocalDateTime start, LocalDateTime end) {
+        QVisit visit = QVisit.visit;
+        return queryFactory.selectFrom(visit)
+                .where(visit.room.uuid.eq(roomUuid),
+                        visit.timeRange.startDateTime.lt(end),
+                        visit.timeRange.endDateTime.gt(start))
+                .orderBy(visit.timeRange.startDateTime.asc())
+                .fetch();
+    }
 }

@@ -14,6 +14,7 @@ public record CreateVisitRequestDto(
         UUID petUuid,
         @NotNull(message = "vet.uuid.is.required")
         UUID vetUuid,
+        UUID roomUuid,
         @NotNull(message = "visit.date.is.required")
         @FutureOrPresent(message = "visit.date.must.be.in.present.or.future")
         @JsonFormat(pattern = "yyyy-MM-dd")

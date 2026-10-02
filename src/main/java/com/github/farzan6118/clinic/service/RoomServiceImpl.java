@@ -114,7 +114,7 @@ public class RoomServiceImpl implements RoomService {
     @CacheEvict(value = "room")
     public void create(CreateRoomRequestDto request) {
 
-        validateCodeUniqueness(request.code());
+        validateCodeUniqueness(request.roomNumber());
         var roomType = roomTypeService.getEntityByUuid(request.roomTypeUuid());
         var clinic = clinicService.getEntityByUuid(request.clinicUuid());
         validateActiveReferences(roomType, clinic);
@@ -126,10 +126,10 @@ public class RoomServiceImpl implements RoomService {
 
     }
 
-    private void validateCodeUniqueness(String code) {
-        String normalizedCode = code.trim();
+    private void validateCodeUniqueness(String roomNumber) {
+        String normalizedCode = roomNumber.trim();
         if (roomRepository.existsByRoomNumberIgnoreCase(normalizedCode)) {
-            throw new ConflictException("A room with this number already exists", "room number '" + code + "' already exists");
+            throw new ConflictException("A room with this number already exists", "room number '" + roomNumber + "' already exists");
         }
     }
 
@@ -138,7 +138,7 @@ public class RoomServiceImpl implements RoomService {
     @CacheEvict(value = "room")
     public void update(UUID uuid, UpdateRoomRequestDto request) {
         Room room = getEntityByUuid(uuid);
-        validateCodeUniqueness(request.code(), uuid);
+        validateCodeUniqueness(request.roomNumber(), uuid);
         var roomType = roomTypeService.getEntityByUuid(request.roomTypeUuid());
         var clinic = clinicService.getEntityByUuid(request.clinicUuid());
         validateActiveReferences(roomType, clinic);

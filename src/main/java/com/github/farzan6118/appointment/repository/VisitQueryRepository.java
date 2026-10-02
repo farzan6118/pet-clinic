@@ -17,4 +17,6 @@ public interface VisitQueryRepository {
             UUID vetUuid,
             LocalDateTime start,
             LocalDateTime end);
+
+    List<Visit> findOverlappingRoomVisits(UUID roomUuid, LocalDateTime start, LocalDateTime end);
 }

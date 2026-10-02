@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public record UpdateRoomRequestDto(
         @NotBlank @Size(max = 200) String name,
-        @NotBlank @Size(max = 20) String code,
+        @NotBlank @Size(max = 20) String roomNumber,
         @NotNull UUID roomTypeUuid,
         @NotNull UUID clinicUuid,
         @NotNull Boolean active

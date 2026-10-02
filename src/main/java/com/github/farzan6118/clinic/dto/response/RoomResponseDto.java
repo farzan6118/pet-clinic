@@ -5,7 +5,7 @@ import java.util.UUID;
 public record RoomResponseDto(
         UUID uuid,
         String name,
-        String code,
+        String roomNumber,
         RoomTypeResponseDto roomType,
         Boolean active,
         UUID clinicUuid

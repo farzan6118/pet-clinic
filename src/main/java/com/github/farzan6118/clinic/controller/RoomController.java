@@ -4,6 +4,8 @@ import com.github.farzan6118.clinic.dto.request.CreateRoomRequestDto;
 import com.github.farzan6118.clinic.dto.request.UpdateRoomRequestDto;
 import com.github.farzan6118.clinic.dto.response.RoomResponseDto;
 import com.github.farzan6118.clinic.service.RoomService;
+import com.github.farzan6118.appointment.service.DailyAvailabilityService;
+import com.github.farzan6118.common.dto.response.DailyAvailabilityBlockResponseDto;
 import com.github.farzan6118.common.dto.request.PageAndSortRequestDto;
 import com.github.farzan6118.common.dto.response.PageResponseDto;
 import com.github.farzan6118.common.dto.response.UuidAndTitleResponseDto;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
+import java.time.LocalDate;
 
 @Validated
 @RestController
@@ -24,6 +27,13 @@ import java.util.UUID;
 public class RoomController {
 
     private final RoomService roomService;
+    private final DailyAvailabilityService dailyAvailabilityService;
+
+    @GetMapping("/{uuid}/availability")
+    public ResponseEntity<List<DailyAvailabilityBlockResponseDto>> getAvailability(
+            @PathVariable UUID uuid, @RequestParam LocalDate date) {
+        return ResponseEntity.ok(dailyAvailabilityService.getRoomAvailability(uuid, date));
+    }
 
     @GetMapping("/{uuid}")
     public ResponseEntity<RoomResponseDto> getByUuid(@PathVariable UUID uuid) {

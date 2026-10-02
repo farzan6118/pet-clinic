@@ -31,7 +31,7 @@ public class RoomMapper {
 
     public void mapToEntity(CreateRoomRequestDto request, Room room, RoomType roomType, Clinic clinic) {
         room.setName(toLower(request.name()));
-        room.setRoomNumber(toUpper(request.code()));
+        room.setRoomNumber(toUpper(request.roomNumber()));
         room.setRoomType(roomType);
         room.setClinic(clinic);
         room.setActive(request.active());
@@ -39,7 +39,7 @@ public class RoomMapper {
 
     public void mapToEntity(UpdateRoomRequestDto request, Room room, RoomType roomType, Clinic clinic) {
         room.setName(toLower(request.name()));
-        room.setRoomNumber(toUpper(request.code()));
+        room.setRoomNumber(toUpper(request.roomNumber()));
         room.setRoomType(roomType);
         room.setClinic(clinic);
         room.setActive(request.active());

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.time.DayOfWeek;
 import java.util.Arrays;
 import java.util.List;
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -27,5 +28,12 @@ public class ClinicAvailabilityServiceImpl implements ClinicAvailabilityService 
                             available ? hours.end() : null);
                 })
                 .toList();
+    }
+
+    @Override
+    public boolean isOpen(LocalDate date) {
+        return getAvailability().stream()
+                .filter(day -> day.dayOfWeek() == date.getDayOfWeek())
+                .anyMatch(ClinicAvailabilityResponseDto::available);
     }
 }

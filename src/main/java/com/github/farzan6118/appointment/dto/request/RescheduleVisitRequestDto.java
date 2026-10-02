@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
 public record RescheduleVisitRequestDto(
         @NotNull(message = "visit.date.is.required")
@@ -20,6 +21,7 @@ public record RescheduleVisitRequestDto(
         @Schema(example = "09:30")
         LocalTime visitTime,
         VisitType visitType,
+        UUID roomUuid,
         @Size(max = 2048, message = "description.too.long")
         String description,
         @Size(max = 255, message = "reason.too.long")

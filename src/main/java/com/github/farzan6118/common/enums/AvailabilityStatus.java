@@ -1,7 +1,7 @@
 package com.github.farzan6118.common.enums;
 
-public enum SlotStatus {
+public enum AvailabilityStatus {
     AVAILABLE,
     BOOKED,
-    BLOCKED
+    UNAVAILABLE
 }

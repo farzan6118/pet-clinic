@@ -7,6 +7,8 @@ import com.github.farzan6118.vet.dto.request.VetCreateRequestDto;
 import com.github.farzan6118.vet.dto.request.VetUpdateRequestDto;
 import com.github.farzan6118.vet.dto.response.VetResponseDto;
 import com.github.farzan6118.vet.service.VetService;
+import com.github.farzan6118.appointment.service.DailyAvailabilityService;
+import com.github.farzan6118.common.dto.response.DailyAvailabilityBlockResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
+import java.time.LocalDate;
 
 @Validated
 @RestController
@@ -24,6 +27,13 @@ import java.util.UUID;
 public class VetController {
 
     private final VetService vetService;
+    private final DailyAvailabilityService dailyAvailabilityService;
+
+    @GetMapping("/{uuid}/availability")
+    public ResponseEntity<List<DailyAvailabilityBlockResponseDto>> getAvailability(
+            @PathVariable UUID uuid, @RequestParam LocalDate date) {
+        return ResponseEntity.ok(dailyAvailabilityService.getVetAvailability(uuid, date));
+    }
 
     @GetMapping("/{uuid}")
     public ResponseEntity<VetResponseDto> getByUuid(@PathVariable UUID uuid) {
