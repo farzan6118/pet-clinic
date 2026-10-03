@@ -1,0 +1,46 @@
+package com.github.farzan6118.clinic.repository;
+
+import com.github.farzan6118.clinic.model.Room;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+public interface RoomRepository extends JpaRepository<Room, Integer> {
+
+    Optional<Room> findByUuid(UUID uuid);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select room from Room room where room.uuid = :uuid")
+    Optional<Room> findByUuidForUpdate(@Param("uuid") UUID uuid);
+
+    boolean existsByRoomNumberIgnoreCase(String code);
+
+    boolean existsByRoomNumberIgnoreCaseAndUuidNot(String roomNumber, UUID uuid);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select room
+            from Room room
+            where room.active = true
+                and room.building.active = true
+                and lower(room.roomType.name) in :roomTypeNames
+            order by room.id
+            """)
+    List<Room> findActiveRoomsByTypeNames(@Param("roomTypeNames") List<String> roomTypeNames);
+
+    @Query("""
+            select room
+            from Room room
+            where room.active = true
+                and room.building.active = true
+                and lower(room.roomType.name) in :roomTypeNames
+            order by room.id
+            """)
+    List<Room> findActiveRoomsByTypeNamesWithoutLock(@Param("roomTypeNames") List<String> roomTypeNames);
+}

@@ -1,5 +1,5 @@
 server:
-  port: 8010
+  port: 8020
 
 spring:
   application:
@@ -18,9 +18,9 @@ spring:
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/pet_clinic
-    username: user
-    password: pass
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/pet_clinic}
+    username: ${DB_USERNAME:user}
+    password: ${DB_PASSWORD:pass}
 
   jpa:
     show-sql: false
@@ -64,10 +64,10 @@ spring:
     encoding: UTF-8
 
 keycloak:
-  server-url: http://localhost:8180
-  realm: my-realm
-  client-id: pet-clinic
-  client-secret: OTsWNHPnVe8O0NLKUwL13PD6ir5GzC5te1nnXaQETEQri7YJWhGXlvzF23K0FPAGkQCouv5i0LKDNnCGq1qj42
+  server-url: ${KEYCLOAK_SERVER_URL:http://localhost:8180}
+  realm: ${KEYCLOAK_REALM:my-realm}
+  client-id: ${KEYCLOAK_CLIENT_ID:pet-clinic}
+  client-secret: ${KEYCLOAK_CLIENT_SECRET:}
 
 springdoc:
   api-docs:
@@ -89,13 +89,14 @@ system:
     uuid: 00000000-0000-0000-0000-000000000002
 
 clinic:
-  availibility:
+  availability:
     working-hours:
       start: "08:00"
       end: "17:00"
     close-days:
       - SATURDAY
       - SUNDAY
+    time-block-minutes: 5
 
 logging:
   level:

@@ -22,11 +22,11 @@
     <!-- ========================================================= -->
 
     <groupId>com.github.farzan6118</groupId>
-    <artifactId>veterinary-clinic</artifactId>
+    <artifactId>pet-building</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
-    <name>veterinary-clinic</name>
-    <description>Veterinary Clinic Management System</description>
+    <name>pet-building</name>
+    <description>Pet Clinic Management System</description>
 
     <!-- ========================================================= -->
     <!-- Properties                                                  -->
@@ -187,17 +187,15 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-test</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
 
-        <!-- ==================== Test Data ==================== -->
-
         <dependency>
-            <groupId>net.datafaker</groupId>
-            <artifactId>datafaker</artifactId>
-            <version>${datafaker.version}</version>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
