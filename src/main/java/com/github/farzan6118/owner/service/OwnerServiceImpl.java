@@ -47,7 +47,7 @@ public class OwnerServiceImpl implements OwnerService {
     @Override
     @Transactional
     public void create(OwnerCreateRequestDto request) {
-        validateUniqueContactInfo(request.profile().mobileNumber(), request.profile().email());
+        validateUniqueContactInfo(request.contact().mobileNumber(), request.contact().email());
         Owner owner = ownerMapper.toEntity(request);
         ownerRepository.save(owner);
     }
@@ -56,8 +56,8 @@ public class OwnerServiceImpl implements OwnerService {
     @Transactional
     public void update(UUID uuid, OwnerUpdateRequestDto request) {
         Owner owner = getEntityByUuid(uuid);
-        validateEmailUniqueness(request.profile().email(), uuid);
-        validateMobileNumberUniqueness(request.profile().mobileNumber(), uuid);
+        validateEmailUniqueness(request.contact().email(), uuid);
+        validateMobileNumberUniqueness(request.contact().mobileNumber(), uuid);
         ownerMapper.toEntity(request, owner);
     }
 

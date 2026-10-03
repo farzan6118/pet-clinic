@@ -139,7 +139,7 @@ public class VetServiceImpl implements VetService {
     @CacheEvict(value = "vet")
     public void create(VetCreateRequestDto request) {
 
-        validateUniqueContactInfo(request.profile().mobileNumber(), request.profile().email());
+        validateUniqueContactInfo(request.contact().mobileNumber(), request.contact().email());
         Building building = buildingService.getEntityByUuid(request.clinicUuid());
         Vet vet = vetMapper.toEntity(request, building);
 

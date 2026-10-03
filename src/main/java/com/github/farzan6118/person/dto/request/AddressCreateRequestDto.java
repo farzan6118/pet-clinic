@@ -62,9 +62,6 @@ public record AddressCreateRequestDto(
                 example = "Near the main entrance, opposite the pharmacy",
                 maxLength = 500
         )
-        String description,
-
-        @Schema(description = "Whether this is the default address", example = "true")
-        boolean defaultAddress
+        String description
 ) {
 }

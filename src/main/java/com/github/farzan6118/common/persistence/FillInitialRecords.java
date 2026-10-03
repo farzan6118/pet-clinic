@@ -302,7 +302,6 @@ public class FillInitialRecords implements CommandLineRunner {
         address.setLongitude(longitude);
         address.setLatitude(latitude);
         address.setPostalCode("2478299468");
-        address.setDefaultAddress(true);
         return address;
     }
 

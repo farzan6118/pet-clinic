@@ -68,7 +68,7 @@ public class OpenAPIConfig {
                                                 .scopes(
                                                         new Scopes()
                                                                 .addString("openid", "OpenID")
-                                                                .addString("profile", "Contact")
+                                                                .addString("contact", "Contact")
                                                                 .addString("email", "Email")
                                                 )
                                 )

@@ -22,8 +22,7 @@ public class AddressMapper {
                 address.getPostalCode(),
                 address.getLatitude(),
                 address.getLongitude(),
-                address.getDescription(),
-                address.isDefaultAddress()
+                address.getDescription()
         );
     }
 
@@ -46,7 +45,6 @@ public class AddressMapper {
         address.setLatitude(request.latitude());
         address.setLongitude(request.longitude());
         address.setDescription(request.description());
-        address.setDefaultAddress(request.defaultAddress());
     }
 
     public void toEntity(AddressUpdateRequestDto request, Address address) {
@@ -62,6 +60,5 @@ public class AddressMapper {
         address.setLatitude(request.latitude());
         address.setLongitude(request.longitude());
         address.setDescription(request.description());
-        address.setDefaultAddress(request.defaultAddress());
     }
 }

@@ -6,9 +6,9 @@ import com.github.farzan6118.common.enums.EntityStatus;
 import com.github.farzan6118.common.exception.ConflictException;
 import com.github.farzan6118.common.mapper.PageMapper;
 import com.github.farzan6118.person.dto.request.AddressCreateRequestDto;
+import com.github.farzan6118.person.dto.request.ContactCreateRequestDto;
+import com.github.farzan6118.person.dto.request.ContactUpdateRequestDto;
 import com.github.farzan6118.person.dto.request.PersonCreateRequestDto;
-import com.github.farzan6118.person.dto.request.ProfileCreateRequestDto;
-import com.github.farzan6118.person.dto.request.ProfileUpdateRequestDto;
 import com.github.farzan6118.person.model.Address;
 import com.github.farzan6118.person.model.Contact;
 import com.github.farzan6118.person.model.Person;
@@ -49,9 +49,9 @@ class VetServiceImplTest {
     void create_shouldPersistNestedPersonWhenContactIsUnique() {
         UUID clinicUuid = UUID.randomUUID();
         VetCreateRequestDto request = new VetCreateRequestDto(
-                new PersonCreateRequestDto("Dr.", "Sara", "Moradi", "100000001"),
-                profileCreate(), new AddressCreateRequestDto("Home", "Germany", "Berlin", "Berlin",
-                "1", null, null, "Main Street", "1234567890", 52.52, 13.4, null, true), clinicUuid);
+                new PersonCreateRequestDto("Dr.", "Sara", "Moradi", "100000001", LocalDate.of(2000, 10, 10), null),
+                contactCreate(), new AddressCreateRequestDto("Home", "Germany", "Berlin", "Berlin",
+                "1", null, null, "Main Street", "1234567890", 52.52, 13.4, null), clinicUuid);
         Vet vet = new Vet();
         Building building = new Building();
         when(buildingService.getEntityByUuid(clinicUuid)).thenReturn(building);
@@ -70,7 +70,7 @@ class VetServiceImplTest {
         when(vetRepository.findByUuid(uuid)).thenReturn(Optional.of(vet));
         when(vetRepository.existsByPerson_Contact_EmailAndUuidNot("new@example.com", uuid)).thenReturn(true);
         VetUpdateRequestDto request = new VetUpdateRequestDto(null,
-                new ProfileUpdateRequestDto("new@example.com", "09121111111", null, null), null);
+                new ContactUpdateRequestDto("new@example.com", "09121111111", null), null);
 
         assertThrows(ConflictException.class, () -> service.update(uuid, request));
 
@@ -98,8 +98,7 @@ class VetServiceImplTest {
         assertEquals(EntityStatus.DELETED, address.getEntityStatus());
     }
 
-    private ProfileCreateRequestDto profileCreate() {
-        return new ProfileCreateRequestDto("vet@example.com", "09120000000",
-                LocalDate.of(1985, 3, 18), null);
+    private ContactCreateRequestDto contactCreate() {
+        return new ContactCreateRequestDto("vet@example.com", "09120000000", null);
     }
 }

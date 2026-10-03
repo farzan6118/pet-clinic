@@ -106,11 +106,6 @@ public class Address extends BaseEntity<Long> {
             maxLength = 500
     )
     private String description;
-
-    @Column(nullable = false)
-    @Schema(description = "Whether this is the default address",
-            example = "true", defaultValue = "true")
-    private boolean defaultAddress = true;
 }
 
 

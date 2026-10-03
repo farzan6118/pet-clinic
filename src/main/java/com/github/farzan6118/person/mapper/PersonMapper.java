@@ -16,7 +16,9 @@ public class PersonMapper {
                 person.getTitle(),
                 person.getFirstName(),
                 person.getLastName(),
-                person.getNationalId()
+                person.getNationalId(),
+                person.getBirthDate(),
+                person.getPhoto()
         );
     }
 
@@ -31,6 +33,8 @@ public class PersonMapper {
         person.setFirstName(toLower(request.firstName()));
         person.setLastName(toLower(request.lastName()));
         person.setNationalId(request.nationalId());
+        person.setBirthDate(request.birthDate());
+        person.setPhoto(request.photo());
     }
 
     public void toEntity(PersonUpdateRequestDto request, Person person) {
@@ -38,6 +42,8 @@ public class PersonMapper {
         person.setFirstName(toLower(request.firstName()));
         person.setLastName(toLower(request.lastName()));
         person.setNationalId(request.nationalId());
+        person.setBirthDate(request.birthDate());
+        person.setPhoto(request.photo());
     }
 
     private String toUpper(String value) {

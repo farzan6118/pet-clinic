@@ -5,8 +5,8 @@ import com.github.farzan6118.owner.dto.request.OwnerUpdateRequestDto;
 import com.github.farzan6118.owner.dto.response.OwnerResponseDto;
 import com.github.farzan6118.owner.model.Owner;
 import com.github.farzan6118.person.mapper.AddressMapper;
+import com.github.farzan6118.person.mapper.ContactMapper;
 import com.github.farzan6118.person.mapper.PersonMapper;
-import com.github.farzan6118.person.mapper.ProfileMapper;
 import com.github.farzan6118.person.model.Person;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -17,14 +17,14 @@ public class OwnerMapper {
 
     private final PersonMapper personMapper;
     private final AddressMapper addressMapper;
-    private final ProfileMapper profileMapper;
+    private final ContactMapper contactMapper;
 
     public OwnerResponseDto toDto(Owner owner) {
         Person person = owner.getPerson();
         return new OwnerResponseDto(
                 owner.getUuid(),
                 personMapper.toDto(person),
-                profileMapper.toDto(person),
+                contactMapper.toDto(person),
                 addressMapper.toDto(person.getAddress())
         );
     }
@@ -37,7 +37,7 @@ public class OwnerMapper {
 
     public void toEntity(OwnerCreateRequestDto request, Owner owner) {
         Person person = personMapper.toEntity(request.person());
-        person.setContact(profileMapper.toEntity(request.profile(), person));
+        person.setContact(contactMapper.toEntity(request.contact()));
         person.setAddress(addressMapper.toEntity(request.address()));
         owner.setPerson(person);
     }
@@ -45,7 +45,7 @@ public class OwnerMapper {
     public void toEntity(OwnerUpdateRequestDto request, Owner owner) {
         Person person = owner.getPerson();
         personMapper.toEntity(request.person(), person);
-        profileMapper.toEntity(request.profile(), person);
+        contactMapper.toEntity(request.contact(), person);
         addressMapper.toEntity(request.address(), person.getAddress());
     }
 }

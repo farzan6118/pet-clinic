@@ -12,7 +12,6 @@ public record AddressResponseDto(
         String postalCode,
         Double latitude,
         Double longitude,
-        String description,
-        boolean defaultAddress
+        String description
 ) {
 }

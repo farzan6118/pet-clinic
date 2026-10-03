@@ -7,7 +7,7 @@ import com.github.farzan6118.owner.dto.request.OwnerCreateRequestDto;
 import com.github.farzan6118.owner.mapper.OwnerMapper;
 import com.github.farzan6118.owner.model.Owner;
 import com.github.farzan6118.owner.repository.OwnerRepository;
-import com.github.farzan6118.person.dto.request.ProfileCreateRequestDto;
+import com.github.farzan6118.person.dto.request.ContactCreateRequestDto;
 import com.github.farzan6118.person.model.Address;
 import com.github.farzan6118.person.model.Contact;
 import com.github.farzan6118.person.model.Person;
@@ -39,7 +39,7 @@ class OwnerServiceImplTest {
     @Test
     void create_shouldRejectDuplicateEmail() {
         OwnerCreateRequestDto request = new OwnerCreateRequestDto(null,
-                new ProfileCreateRequestDto("owner@example.com", "09120000000", null, null), null);
+                new ContactCreateRequestDto("owner@example.com", "09120000000", null), null);
         when(ownerRepository.existsByPerson_Contact_Email("owner@example.com")).thenReturn(true);
 
         assertThrows(ConflictException.class, () -> service.create(request));
