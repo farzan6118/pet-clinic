@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record VetUpdateRequestDto(
         @Valid @NotNull PersonUpdateRequestDto person,
-        @Valid @NotNull ContactUpdateRequestDto profile,
+        @Valid @NotNull ContactUpdateRequestDto contact,
         @Valid @NotNull AddressUpdateRequestDto address
 ) {
 }

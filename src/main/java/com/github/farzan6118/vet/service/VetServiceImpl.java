@@ -161,8 +161,8 @@ public class VetServiceImpl implements VetService {
     @CacheEvict(value = "vet")
     public void update(UUID uuid, VetUpdateRequestDto request) {
         Vet vet = getEntityByUuid(uuid);
-        validateEmailUniqueness(request.profile().email(), uuid);
-        validateTelephoneUniqueness(request.profile().mobileNumber(), uuid);
+        validateEmailUniqueness(request.contact().email(), uuid);
+        validateTelephoneUniqueness(request.contact().mobileNumber(), uuid);
         vetMapper.toEntity(request, vet);
         log.info("vet updated");
     }

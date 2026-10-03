@@ -58,7 +58,7 @@ public class VetMapper {
     public void toEntity(VetUpdateRequestDto request, Vet vet, Building building) {
         Person person = vet.getPerson();
         personMapper.toEntity(request.person(), person);
-        contactMapper.toEntity(request.profile(), person);
+        contactMapper.toEntity(request.contact(), person);
         addressMapper.toEntity(request.address(), person.getAddress());
         vet.setBuilding(building);
     }
@@ -66,7 +66,7 @@ public class VetMapper {
     public void toEntity(VetUpdateRequestDto request, Vet vet) {
         Person person = vet.getPerson();
         personMapper.toEntity(request.person(), person);
-        contactMapper.toEntity(request.profile(), person);
+        contactMapper.toEntity(request.contact(), person);
         addressMapper.toEntity(request.address(), person.getAddress());
     }
 

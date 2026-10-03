@@ -5,10 +5,7 @@ import com.github.farzan6118.clinic.service.BuildingService;
 import com.github.farzan6118.common.enums.EntityStatus;
 import com.github.farzan6118.common.exception.ConflictException;
 import com.github.farzan6118.common.mapper.PageMapper;
-import com.github.farzan6118.person.dto.request.AddressCreateRequestDto;
-import com.github.farzan6118.person.dto.request.ContactCreateRequestDto;
-import com.github.farzan6118.person.dto.request.ContactUpdateRequestDto;
-import com.github.farzan6118.person.dto.request.PersonCreateRequestDto;
+import com.github.farzan6118.person.dto.request.*;
 import com.github.farzan6118.person.model.Address;
 import com.github.farzan6118.person.model.Contact;
 import com.github.farzan6118.person.model.Person;
@@ -69,8 +66,11 @@ class VetServiceImplTest {
         Vet vet = new Vet();
         when(vetRepository.findByUuid(uuid)).thenReturn(Optional.of(vet));
         when(vetRepository.existsByPerson_Contact_EmailAndUuidNot("new@example.com", uuid)).thenReturn(true);
-        VetUpdateRequestDto request = new VetUpdateRequestDto(null,
-                new ContactUpdateRequestDto("new@example.com", "09121111111", null), null);
+        VetUpdateRequestDto request = new VetUpdateRequestDto(
+                new PersonUpdateRequestDto(null, null, null, null, null, null),
+                new ContactUpdateRequestDto("new@example.com", "09121111111", null),
+                new AddressUpdateRequestDto("Home", "Germany", "Berlin", "Berlin", "1",
+                        null, null, "Main Street", "1234567890", 52.52, 13.4, null));
 
         assertThrows(ConflictException.class, () -> service.update(uuid, request));
 

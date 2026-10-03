@@ -149,12 +149,22 @@ public class FillInitialRecords implements CommandLineRunner {
         List<Owner> owners = ownerRepository.findAll();
         List<Species> species = speciesRepository.findAll();
 
-        if (owners.size() < 3 || species.size() < 4) return;
+        if (owners.isEmpty() || species.isEmpty()) {
+            throw new IllegalStateException("Cannot seed pets: owners or species are missing");
+        }
 
         Map<String, Owner> ownersByNationalId = owners.stream()
                 .collect(Collectors.toMap(owner -> owner.getPerson().getNationalId(), Function.identity()));
         Map<String, Species> speciesByCode = species.stream()
                 .collect(Collectors.toMap(Species::getCode, Function.identity()));
+
+        requireSeedReference(ownersByNationalId, "200000001", "owner");
+        requireSeedReference(ownersByNationalId, "200000002", "owner");
+        requireSeedReference(ownersByNationalId, "200000003", "owner");
+        requireSeedReference(speciesByCode, "DOG", "species");
+        requireSeedReference(speciesByCode, "CAT", "species");
+        requireSeedReference(speciesByCode, "RABBIT", "species");
+        requireSeedReference(speciesByCode, "HAMSTER", "species");
 
         petRepository.saveAll(List.of(
                 pet("Luna", "White", "Small black mark", Sex.FEMALE,
@@ -174,11 +184,24 @@ public class FillInitialRecords implements CommandLineRunner {
         ));
     }
 
+    private <T> void requireSeedReference(Map<String, T> records, String key, String type) {
+        if (!records.containsKey(key)) {
+            throw new IllegalStateException("Cannot seed pets: required " + type + " is missing: " + key);
+        }
+    }
+
     private void seedRooms() {
         if (roomRepository.count() != 0) return;
-        List<Building> buildings = clinicRepository.findAll();
+        List<Building> buildings = clinicRepository.findAll().stream()
+                .filter(Building::isActive)
+                .toList();
         List<RoomType> types = roomTypeRepository.findAll();
-        if (buildings.isEmpty() || types.isEmpty()) return;
+        if (buildings.isEmpty()) {
+            throw new IllegalStateException("Cannot seed rooms: no active building exists");
+        }
+        if (types.isEmpty()) {
+            throw new IllegalStateException("Cannot seed rooms: no room types exist");
+        }
         Building building = buildings.getFirst();
         RoomType examination = findRoomType(types, "examination");
         RoomType treatment = findRoomType(types, "treatment");
