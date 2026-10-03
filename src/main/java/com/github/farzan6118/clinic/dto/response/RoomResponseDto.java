@@ -8,6 +8,6 @@ public record RoomResponseDto(
         String roomNumber,
         RoomTypeResponseDto roomType,
         Boolean active,
-        UUID clinicUuid
+        BuildingResponseDto building
 ) {
 }

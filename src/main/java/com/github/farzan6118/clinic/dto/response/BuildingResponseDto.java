@@ -4,7 +4,7 @@ import com.github.farzan6118.person.dto.response.AddressResponseDto;
 
 import java.util.UUID;
 
-public record ClinicResponseDto(
+public record BuildingResponseDto(
         UUID uuid,
         String name,
         Integer code,

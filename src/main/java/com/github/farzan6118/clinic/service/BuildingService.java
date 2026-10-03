@@ -2,7 +2,7 @@ package com.github.farzan6118.clinic.service;
 
 import com.github.farzan6118.clinic.dto.request.CreateClinicRequestDto;
 import com.github.farzan6118.clinic.dto.request.UpdateClinicRequestDto;
-import com.github.farzan6118.clinic.dto.response.ClinicResponseDto;
+import com.github.farzan6118.clinic.dto.response.BuildingResponseDto;
 import com.github.farzan6118.clinic.model.Building;
 import com.github.farzan6118.common.dto.request.PageAndSortRequestDto;
 import com.github.farzan6118.common.dto.response.PageResponseDto;
@@ -12,13 +12,13 @@ import java.util.List;
 import java.util.UUID;
 
 public interface BuildingService {
-    ClinicResponseDto getByUuid(UUID uuid);
+    BuildingResponseDto getByUuid(UUID uuid);
 
     Building getEntityByUuid(UUID uuid);
 
     Building getFirstByActive();
 
-    PageResponseDto<ClinicResponseDto> findAll(PageAndSortRequestDto request);
+    PageResponseDto<BuildingResponseDto> findAll(PageAndSortRequestDto request);
 
     List<UuidAndTitleResponseDto> findAllIdAndTitle();
 

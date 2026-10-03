@@ -2,8 +2,8 @@ package com.github.farzan6118.clinic.service;
 
 import com.github.farzan6118.clinic.dto.request.CreateClinicRequestDto;
 import com.github.farzan6118.clinic.dto.request.UpdateClinicRequestDto;
-import com.github.farzan6118.clinic.dto.response.ClinicResponseDto;
-import com.github.farzan6118.clinic.mapper.ClinicMapper;
+import com.github.farzan6118.clinic.dto.response.BuildingResponseDto;
+import com.github.farzan6118.clinic.mapper.BuildingMapper;
 import com.github.farzan6118.clinic.model.Building;
 import com.github.farzan6118.clinic.repository.ClinicRepository;
 import com.github.farzan6118.common.dto.request.PageAndSortRequestDto;
@@ -32,12 +32,12 @@ import java.util.UUID;
 public class BuildingServiceImpl implements BuildingService {
 
     private final ClinicRepository clinicRepository;
-    private final ClinicMapper clinicMapper;
+    private final BuildingMapper buildingMapper;
     private final PageMapper pageMapper;
 
     @Override
-    public ClinicResponseDto getByUuid(UUID uuid) {
-        return clinicMapper.toDto(getEntityByUuid(uuid));
+    public BuildingResponseDto getByUuid(UUID uuid) {
+        return buildingMapper.toDto(getEntityByUuid(uuid));
     }
 
     @Override
@@ -53,10 +53,10 @@ public class BuildingServiceImpl implements BuildingService {
     }
 
     @Override
-    public PageResponseDto<ClinicResponseDto> findAll(PageAndSortRequestDto request) {
+    public PageResponseDto<BuildingResponseDto> findAll(PageAndSortRequestDto request) {
         Pageable pageable = pageMapper.getPageable(request);
         Page<Building> clinics = clinicRepository.findAll(pageable);
-        return pageMapper.toPageResponse(clinics, clinicMapper::toDto);
+        return pageMapper.toPageResponse(clinics, buildingMapper::toDto);
     }
 
     @Override
@@ -64,7 +64,7 @@ public class BuildingServiceImpl implements BuildingService {
     public List<UuidAndTitleResponseDto> findAllIdAndTitle() {
         return clinicRepository.findAll()
                 .stream()
-                .map(clinicMapper::toUuidAndTitle)
+                .map(buildingMapper::toUuidAndTitle)
                 .toList();
     }
 
@@ -73,7 +73,7 @@ public class BuildingServiceImpl implements BuildingService {
     @CacheEvict(value = "clinic")
     public void create(CreateClinicRequestDto request) {
         validateUniqueCode(request.code());
-        clinicRepository.save(clinicMapper.toEntity(request));
+        clinicRepository.save(buildingMapper.toEntity(request));
         log.info("clinic created");
     }
 
@@ -91,7 +91,7 @@ public class BuildingServiceImpl implements BuildingService {
     public void update(UUID uuid, UpdateClinicRequestDto request) {
         Building building = getEntityByUuid(uuid);
         validateUniqueCodeForUpdate(request.code(), building.getUuid());
-        clinicMapper.toEntity(request, building);
+        buildingMapper.toEntity(request, building);
         log.info("building updated: {}", uuid);
     }
 

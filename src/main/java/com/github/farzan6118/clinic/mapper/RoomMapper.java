@@ -17,6 +17,7 @@ import java.util.Locale;
 public class RoomMapper {
 
     private final RoomTypeMapper roomTypeMapper;
+    private final BuildingMapper buildingMapper;
 
     public RoomResponseDto mapToDto(Room room) {
         return new RoomResponseDto(
@@ -25,7 +26,7 @@ public class RoomMapper {
                 room.getRoomNumber(),
                 roomTypeMapper.toDto(room.getRoomType()),
                 room.isActive(),
-                room.getBuilding().getUuid()
+                buildingMapper.toDto(room.getBuilding())
         );
     }
 

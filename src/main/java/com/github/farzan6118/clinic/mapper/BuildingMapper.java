@@ -2,7 +2,7 @@ package com.github.farzan6118.clinic.mapper;
 
 import com.github.farzan6118.clinic.dto.request.CreateClinicRequestDto;
 import com.github.farzan6118.clinic.dto.request.UpdateClinicRequestDto;
-import com.github.farzan6118.clinic.dto.response.ClinicResponseDto;
+import com.github.farzan6118.clinic.dto.response.BuildingResponseDto;
 import com.github.farzan6118.clinic.model.Building;
 import com.github.farzan6118.common.dto.response.UuidAndTitleResponseDto;
 import com.github.farzan6118.person.mapper.AddressMapper;
@@ -12,12 +12,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class ClinicMapper {
+public class BuildingMapper {
 
     private final AddressMapper addressMapper;
 
-    public ClinicResponseDto toDto(Building building) {
-        return new ClinicResponseDto(
+    public BuildingResponseDto toDto(Building building) {
+        return new BuildingResponseDto(
                 building.getUuid(),
                 building.getName(),
                 building.getCode(),

@@ -2,7 +2,7 @@ package com.github.farzan6118.clinic.controller;
 
 import com.github.farzan6118.clinic.dto.request.CreateClinicRequestDto;
 import com.github.farzan6118.clinic.dto.request.UpdateClinicRequestDto;
-import com.github.farzan6118.clinic.dto.response.ClinicResponseDto;
+import com.github.farzan6118.clinic.dto.response.BuildingResponseDto;
 import com.github.farzan6118.clinic.service.BuildingService;
 import com.github.farzan6118.common.dto.request.PageAndSortRequestDto;
 import com.github.farzan6118.common.dto.response.PageResponseDto;
@@ -31,13 +31,13 @@ public class BuildingController {
     }
 
     @GetMapping("/page")
-    public ResponseEntity<PageResponseDto<ClinicResponseDto>> findAll(
+    public ResponseEntity<PageResponseDto<BuildingResponseDto>> findAll(
             @ModelAttribute @Valid PageAndSortRequestDto request) {
         return ResponseEntity.ok(buildingService.findAll(request));
     }
 
     @GetMapping("/{uuid}")
-    public ResponseEntity<ClinicResponseDto> getByUuid(@PathVariable UUID uuid) {
+    public ResponseEntity<BuildingResponseDto> getByUuid(@PathVariable UUID uuid) {
         return ResponseEntity.ok(buildingService.getByUuid(uuid));
     }
 

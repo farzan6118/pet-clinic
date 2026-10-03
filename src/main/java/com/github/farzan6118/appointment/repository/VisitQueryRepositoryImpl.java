@@ -149,13 +149,8 @@ public class VisitQueryRepositoryImpl implements VisitQueryRepository {
     }
 
     @Override
-    public List<Visit> findOverlappingVisits(
-            UUID vetUuid,
-            LocalDateTime start,
-            LocalDateTime end) {
-
+    public List<Visit> findOverlappingVisits(UUID vetUuid, LocalDateTime start, LocalDateTime end) {
         QVisit visit = QVisit.visit;
-
         return queryFactory
                 .selectFrom(visit)
                 .where(
