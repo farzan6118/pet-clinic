@@ -14,22 +14,19 @@ import com.github.farzan6118.vet.repository.VetAvailabilityRepository;
 import com.github.farzan6118.vet.repository.VetRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -64,7 +61,7 @@ class VisitIntegrationTest {
                 .orElseThrow(() -> new AssertionError("Seeder must provide a Vet for integration tests"));
         Room room = roomRepository.findAll().stream()
                 .filter(candidate -> candidate.isActive()
-                        && candidate.getClinic() != null && candidate.getClinic().isActive())
+                        && candidate.getBuilding() != null && candidate.getBuilding().isActive())
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Seeder must provide an active Room for integration tests"));
 

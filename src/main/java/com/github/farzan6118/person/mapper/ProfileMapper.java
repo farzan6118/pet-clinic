@@ -3,38 +3,36 @@ package com.github.farzan6118.person.mapper;
 import com.github.farzan6118.person.dto.request.ProfileCreateRequestDto;
 import com.github.farzan6118.person.dto.request.ProfileUpdateRequestDto;
 import com.github.farzan6118.person.dto.response.ProfileResponseDto;
-import com.github.farzan6118.person.model.Profile;
+import com.github.farzan6118.person.model.Contact;
+import com.github.farzan6118.person.model.Person;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ProfileMapper {
 
-    public ProfileResponseDto toDto(Profile profile) {
+    public ProfileResponseDto toDto(Person person) {
+        Contact contact = person.getContact();
         return new ProfileResponseDto(
-                profile.getEmail(),
-                profile.getMobileNumber(),
-                profile.getBirthDate(),
-                profile.getPhoto()
+                contact.getEmail(),
+                contact.getMobileNumber(),
+                person.getBirthDate(),
+                person.getPhoto()
         );
     }
 
-    public Profile toEntity(ProfileCreateRequestDto request) {
-        Profile profile = new Profile();
-        toEntity(request, profile);
-        return profile;
+    public Contact toEntity(ProfileCreateRequestDto request, Person person) {
+        Contact contact = new Contact();
+        contact.setEmail(request.email());
+        contact.setMobileNumber(request.mobileNumber());
+        person.setBirthDate(request.birthDate());
+        person.setPhoto(request.photo());
+        return contact;
     }
 
-    public void toEntity(ProfileCreateRequestDto request, Profile profile) {
-        profile.setEmail(request.email());
-        profile.setMobileNumber(request.mobileNumber());
-        profile.setBirthDate(request.birthDate());
-        profile.setPhoto(request.photo());
-    }
-
-    public void toEntity(ProfileUpdateRequestDto request, Profile profile) {
-        profile.setEmail(request.email());
-        profile.setMobileNumber(request.mobileNumber());
-        profile.setBirthDate(request.birthDate());
-        profile.setPhoto(request.photo());
+    public void toEntity(ProfileUpdateRequestDto request, Person person) {
+        person.getContact().setEmail(request.email());
+        person.getContact().setMobileNumber(request.mobileNumber());
+        person.setBirthDate(request.birthDate());
+        person.setPhoto(request.photo());
     }
 }

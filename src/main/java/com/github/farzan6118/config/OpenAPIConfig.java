@@ -28,7 +28,7 @@ public class OpenAPIConfig {
 
         return new OpenAPI()
                 .info(new Info()
-                        .title("Pet Clinic API")
+                        .title("Pet Building API")
                         .version("1.0.0")
                         .description(
                                 "REST API for managing pets, owners, veterinarians, and clinic visits."
@@ -68,7 +68,7 @@ public class OpenAPIConfig {
                                                 .scopes(
                                                         new Scopes()
                                                                 .addString("openid", "OpenID")
-                                                                .addString("profile", "Profile")
+                                                                .addString("profile", "Contact")
                                                                 .addString("email", "Email")
                                                 )
                                 )

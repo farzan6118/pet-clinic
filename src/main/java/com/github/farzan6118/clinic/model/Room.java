@@ -29,7 +29,7 @@ public class Room extends BaseEntity<Integer> {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(nullable = false)
-    private Clinic clinic;
+    private Building building;
 
     @Column(nullable = false)
     private boolean active;

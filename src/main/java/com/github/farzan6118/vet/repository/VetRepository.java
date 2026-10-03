@@ -19,13 +19,13 @@ public interface VetRepository extends JpaRepository<Vet, Long>, VetQueryReposit
 
     Optional<Vet> findByUuid(UUID uuid);
 
-    boolean existsByPerson_Profile_EmailAndUuidNot(String email, UUID uuid);
+    boolean existsByPerson_Contact_EmailAndUuidNot(String email, UUID uuid);
 
-    boolean existsByPerson_Profile_MobileNumberAndUuidNot(String mobile, UUID uuid);
+    boolean existsByPerson_Contact_MobileNumberAndUuidNot(String mobile, UUID uuid);
 
-    boolean existsByPerson_Profile_MobileNumber(String mobile);
+    boolean existsByPerson_Contact_MobileNumber(String mobile);
 
-    boolean existsByPerson_Profile_Email(String email);
+    boolean existsByPerson_Contact_Email(String email);
 
     @Query("""
             select va from VetAvailability va

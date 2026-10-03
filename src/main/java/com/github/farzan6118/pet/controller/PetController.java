@@ -24,6 +24,12 @@ public class PetController {
 
     private final PetService petService;
 
+    @GetMapping("/page")
+    public ResponseEntity<PageResponseDto<PetResponseDto>> findAll(
+            @ModelAttribute @Valid PageAndSortRequestDto requestDto) {
+        return ResponseEntity.ok(petService.findAll(requestDto));
+    }
+
     @GetMapping("/{uuid}")
     public ResponseEntity<PetResponseDto> getByUuid(@PathVariable UUID uuid) {
         return ResponseEntity.ok(petService.getByUuid(uuid));
@@ -34,12 +40,6 @@ public class PetController {
         return ResponseEntity.ok(petService.getMedicalRecordByPetUuid(uuid));
     }
 
-    @GetMapping("/page")
-    public ResponseEntity<PageResponseDto<PetResponseDto>> findAll(
-            @ModelAttribute @Valid PageAndSortRequestDto requestDto) {
-        return ResponseEntity.ok(petService.findAll(requestDto));
-    }
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public void create(@Valid @RequestBody CreatePetRequestDto request) {
@@ -48,10 +48,7 @@ public class PetController {
 
     @PutMapping("/{uuid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void update(
-            @PathVariable UUID uuid,
-            @Valid @RequestBody UpdatePetRequestDto request
-    ) {
+    public void update(@PathVariable UUID uuid, @Valid @RequestBody UpdatePetRequestDto request) {
         petService.update(uuid, request);
     }
 

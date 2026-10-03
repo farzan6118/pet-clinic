@@ -183,15 +183,15 @@ public class VisitServiceQueryImpl implements VisitServiceQuery {
                 && roomVisits.stream().noneMatch(visit -> overlapsActiveVisit(visit, start, end, true));
     }
 
-    private boolean isVetAvailable(List<Visit> vetVisits, LocalDateTime start, LocalDateTime end){
+    private boolean isVetAvailable(List<Visit> vetVisits, LocalDateTime start, LocalDateTime end) {
         return vetVisits.stream().noneMatch(visit -> overlapsActiveVisit(visit, start, end, false));
     }
 
-    private boolean isPetAvailable(List<Visit> petVisits, LocalDateTime start, LocalDateTime end){
+    private boolean isPetAvailable(List<Visit> petVisits, LocalDateTime start, LocalDateTime end) {
         return petVisits.stream().noneMatch(visit -> overlapsActiveVisit(visit, start, end, false));
     }
 
-    private boolean isRoomAvailable(List<Visit> roomVisits, LocalDateTime start, LocalDateTime end){
+    private boolean isRoomAvailable(List<Visit> roomVisits, LocalDateTime start, LocalDateTime end) {
         return roomVisits.stream().noneMatch(visit -> overlapsActiveVisit(visit, start, end, true));
     }
 

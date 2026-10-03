@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/vets/{vetUuid}/availabilities")
-@Validated
 public class VetAvailabilityController {
 
     private final VetAvailabilityService vetAvailabilityService;

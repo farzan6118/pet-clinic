@@ -22,10 +22,10 @@
     <!-- ========================================================= -->
 
     <groupId>com.github.farzan6118</groupId>
-    <artifactId>pet-clinic</artifactId>
+    <artifactId>pet-building</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
-    <name>pet-clinic</name>
+    <name>pet-building</name>
     <description>Pet Clinic Management System</description>
 
     <!-- ========================================================= -->

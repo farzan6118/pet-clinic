@@ -27,6 +27,12 @@ public class OwnerController {
     private final OwnerService ownerService;
     private final PetService petService;
 
+    @GetMapping("/page")
+    public ResponseEntity<PageResponseDto<OwnerResponseDto>> findAll(
+            @ModelAttribute @Valid PageAndSortRequestDto requestDto) {
+        return ResponseEntity.ok(ownerService.findAll(requestDto));
+    }
+
     @GetMapping("/{uuid}")
     public ResponseEntity<OwnerResponseDto> getByUuid(@PathVariable UUID uuid) {
         return ResponseEntity.ok(ownerService.getByUuid(uuid));
@@ -35,12 +41,6 @@ public class OwnerController {
     @GetMapping("/{uuid}/pets")
     public ResponseEntity<List<PetResponseDto>> getPetListByUuid(@PathVariable UUID uuid) {
         return ResponseEntity.ok(petService.getPetListByOwnerUuid(uuid));
-    }
-
-    @GetMapping("/page")
-    public ResponseEntity<PageResponseDto<OwnerResponseDto>> findAll(
-            @ModelAttribute @Valid PageAndSortRequestDto requestDto) {
-        return ResponseEntity.ok(ownerService.findAll(requestDto));
     }
 
     @PostMapping

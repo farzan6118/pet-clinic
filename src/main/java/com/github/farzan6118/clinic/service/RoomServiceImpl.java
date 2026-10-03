@@ -4,7 +4,7 @@ import com.github.farzan6118.clinic.dto.request.CreateRoomRequestDto;
 import com.github.farzan6118.clinic.dto.request.UpdateRoomRequestDto;
 import com.github.farzan6118.clinic.dto.response.RoomResponseDto;
 import com.github.farzan6118.clinic.mapper.RoomMapper;
-import com.github.farzan6118.clinic.model.Clinic;
+import com.github.farzan6118.clinic.model.Building;
 import com.github.farzan6118.clinic.model.Room;
 import com.github.farzan6118.clinic.model.RoomType;
 import com.github.farzan6118.clinic.repository.RoomRepository;
@@ -39,7 +39,7 @@ public class RoomServiceImpl implements RoomService {
     private final RoomMapper roomMapper;
     private final PageMapper pageMapper;
     private final RoomTypeService roomTypeService;
-    private final ClinicService clinicService;
+    private final BuildingService buildingService;
 
     @Override
     public RoomResponseDto getByUuid(UUID uuid) {
@@ -122,7 +122,7 @@ public class RoomServiceImpl implements RoomService {
 
         validateCodeUniqueness(request.roomNumber());
         var roomType = roomTypeService.getEntityByUuid(request.roomTypeUuid());
-        var clinic = clinicService.getEntityByUuid(request.clinicUuid());
+        var clinic = buildingService.getEntityByUuid(request.clinicUuid());
         validateActiveReferences(roomType, clinic);
         Room room = new Room();
         roomMapper.mapToEntity(request, room, roomType, clinic);
@@ -146,7 +146,7 @@ public class RoomServiceImpl implements RoomService {
         Room room = getEntityByUuid(uuid);
         validateCodeUniqueness(request.roomNumber(), uuid);
         var roomType = roomTypeService.getEntityByUuid(request.roomTypeUuid());
-        var clinic = clinicService.getEntityByUuid(request.clinicUuid());
+        var clinic = buildingService.getEntityByUuid(request.clinicUuid());
         validateActiveReferences(roomType, clinic);
         roomMapper.mapToEntity(request, room, roomType, clinic);
         log.info("room updated");
@@ -159,11 +159,11 @@ public class RoomServiceImpl implements RoomService {
         }
     }
 
-    private void validateActiveReferences(RoomType roomType, Clinic clinic) {
+    private void validateActiveReferences(RoomType roomType, Building building) {
         if (roomType.getEntityStatus() != EntityStatus.ACTIVE
-                || clinic.getEntityStatus() != EntityStatus.ACTIVE
-                || !clinic.isActive()) {
-            throw new ConflictException("The room type and clinic must be active", "room type and clinic must be active");
+                || building.getEntityStatus() != EntityStatus.ACTIVE
+                || !building.isActive()) {
+            throw new ConflictException("The room type and building must be active", "room type and building must be active");
         }
     }
 

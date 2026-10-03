@@ -1,5 +1,5 @@
 ---
-description: Keycloak and email integration conventions in pet-clinic
+description: Keycloak and email integration conventions in pet-building
 alwaysApply: true
 ---
 
@@ -22,4 +22,4 @@ Some visit operations trigger notifications while handling state changes. Preser
 
 ## Configuration and secrets
 
-Reuse profile configuration and typed properties. Never log tokens, passwords, client secrets, or sensitive personal information. Do not duplicate credentials in code or documentation. Profile YAML contains local configuration that must be treated as sensitive.
+Reuse contact configuration and typed properties. Never log tokens, passwords, client secrets, or sensitive personal information. Do not duplicate credentials in code or documentation. Profile YAML contains local configuration that must be treated as sensitive.

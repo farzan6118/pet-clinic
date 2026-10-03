@@ -63,23 +63,23 @@ public class OwnerServiceImpl implements OwnerService {
 
     private void validateUniqueContactInfo(String mobile, String email) {
 
-        if (ownerRepository.existsByPerson_profile_Email(email)) {
+        if (ownerRepository.existsByPerson_Contact_Email(email)) {
             throw new ConflictException("An owner with this email already exists", "Duplicate owner email");
         }
 
-        if (ownerRepository.existsByPerson_profile_MobileNumber(mobile)) {
+        if (ownerRepository.existsByPerson_Contact_MobileNumber(mobile)) {
             throw new ConflictException("An owner with this mobile number already exists", "Duplicate owner mobile number");
         }
     }
 
     private void validateEmailUniqueness(String email, UUID uuid) {
-        if (ownerRepository.existsByPerson_profile_EmailAndUuidNot(email, uuid)) {
+        if (ownerRepository.existsByPerson_Contact_EmailAndUuidNot(email, uuid)) {
             throw new ConflictException("An owner with this email already exists", "Duplicate owner email");
         }
     }
 
     private void validateMobileNumberUniqueness(String mobileNumber, UUID uuid) {
-        if (ownerRepository.existsByPerson_profile_MobileNumberAndUuidNot(mobileNumber, uuid)) {
+        if (ownerRepository.existsByPerson_Contact_MobileNumberAndUuidNot(mobileNumber, uuid)) {
             throw new ConflictException("An owner with this mobile number already exists", "Duplicate owner mobile number");
         }
     }

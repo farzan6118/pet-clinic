@@ -1,6 +1,6 @@
 package com.github.farzan6118.vet.model;
 
-import com.github.farzan6118.clinic.model.Clinic;
+import com.github.farzan6118.clinic.model.Building;
 import com.github.farzan6118.common.enums.EntityStatus;
 import com.github.farzan6118.common.persistence.BaseEntity;
 import com.github.farzan6118.person.model.Person;
@@ -21,30 +21,30 @@ import java.util.List;
 public class Vet extends BaseEntity<Long> {
 
     @OneToOne(cascade = CascadeType.ALL, optional = false, orphanRemoval = true)
-    @JoinColumn(name = "person_id", nullable = false, unique = true)
+    @JoinColumn(nullable = false, unique = true)
     private Person person;
 
     @OneToMany(mappedBy = "vet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VetAvailability> availabilities = new ArrayList<>();
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "clinic_id", nullable = false)
-    private Clinic clinic;
+    @JoinColumn(nullable = false)
+    private Building building;
 
     public String getFullName() {
         return this.person.getFullName();
     }
 
     public String getEmail() {
-        return this.person.getProfile().getEmail();
+        return this.person.getContact().getEmail();
     }
 
     public String getMobileNumber() {
-        return this.person.getProfile().getMobileNumber();
+        return this.person.getContact().getMobileNumber();
     }
 
     public void setStatus(EntityStatus status) {
-        this.person.getProfile().setEntityStatus(status);
+        this.person.getContact().setEntityStatus(status);
         this.person.getAddress().setEntityStatus(status);
         this.person.setEntityStatus(status);
         this.setEntityStatus(status);

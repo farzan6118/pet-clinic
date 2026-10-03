@@ -25,9 +25,9 @@ public class SpeciesController {
 
     private final SpeciesService speciesService;
 
-    @GetMapping("/{uuid}")
-    public ResponseEntity<SpeciesResponseDto> getByUuid(@PathVariable UUID uuid) {
-        return ResponseEntity.ok(speciesService.getByUuid(uuid));
+    @GetMapping
+    public ResponseEntity<List<UuidAndTitleResponseDto>> findAllIdAndTitle() {
+        return ResponseEntity.ok(speciesService.findAllIdAndTitle());
     }
 
     @GetMapping("/page")
@@ -36,9 +36,9 @@ public class SpeciesController {
         return ResponseEntity.ok(speciesService.findAll(requestDto));
     }
 
-    @GetMapping
-    public ResponseEntity<List<UuidAndTitleResponseDto>> findAllIdAndTitle() {
-        return ResponseEntity.ok(speciesService.findAllIdAndTitle());
+    @GetMapping("/{uuid}")
+    public ResponseEntity<SpeciesResponseDto> getByUuid(@PathVariable UUID uuid) {
+        return ResponseEntity.ok(speciesService.getByUuid(uuid));
     }
 
     @PostMapping
@@ -49,8 +49,7 @@ public class SpeciesController {
 
     @PutMapping("/{uuid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void update(@PathVariable UUID uuid,
-                       @Valid @RequestBody UpdateSpeciesRequestDto request) {
+    public void update(@PathVariable UUID uuid, @Valid @RequestBody UpdateSpeciesRequestDto request) {
         speciesService.update(uuid, request);
     }
 

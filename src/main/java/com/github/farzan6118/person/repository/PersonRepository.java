@@ -10,11 +10,11 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
 
     Optional<Person> findByUuid(UUID uuid);
 
-    boolean existsByProfile_Email(String email);
+    boolean existsByContact_Email(String email);
 
-    boolean existsByProfile_MobileNumber(String mobile);
+    boolean existsByContact_MobileNumber(String mobile);
 
-    boolean existsByProfile_EmailAndUuidNot(String email, UUID uuid);
+    boolean existsByContact_EmailAndUuidNot(String email, UUID uuid);
 
-    boolean existsByProfile_MobileNumberAndUuidNot(String telephone, UUID uuid);
+    boolean existsByContact_MobileNumberAndUuidNot(String telephone, UUID uuid);
 }

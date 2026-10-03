@@ -1,5 +1,5 @@
 ---
-description: Java and API conventions used by the pet-clinic backend
+description: Java and API conventions used by the pet-building backend
 alwaysApply: true
 ---
 
@@ -19,7 +19,7 @@ Follow nearby code in this repository before introducing a new style. The build 
 
 ## Naming and null behavior
 
-Use the actual domain vocabulary and package names: owner, person, pet, species, vet, availability, clinic, room, visit, and duration template. Production visit code is under `appointment/`, although one existing unit test package is `visit/`; follow the test's existing location when touching it rather than renaming packages opportunistically.
+Use the actual domain vocabulary and package names: owner, person, pet, species, vet, availability, building, room, visit, and duration template. Production visit code is under `appointment/`, although one existing unit test package is `visit/`; follow the test's existing location when touching it rather than renaming packages opportunistically.
 
 Preserve established `Optional`, nullable field, enum, and exception behavior. Do not add wrappers or catch broad exceptions merely for stylistic consistency.
 

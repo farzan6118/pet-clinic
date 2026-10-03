@@ -9,8 +9,8 @@ import com.github.farzan6118.owner.model.Owner;
 import com.github.farzan6118.owner.repository.OwnerRepository;
 import com.github.farzan6118.person.dto.request.ProfileCreateRequestDto;
 import com.github.farzan6118.person.model.Address;
+import com.github.farzan6118.person.model.Contact;
 import com.github.farzan6118.person.model.Person;
-import com.github.farzan6118.person.model.Profile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -40,7 +40,7 @@ class OwnerServiceImplTest {
     void create_shouldRejectDuplicateEmail() {
         OwnerCreateRequestDto request = new OwnerCreateRequestDto(null,
                 new ProfileCreateRequestDto("owner@example.com", "09120000000", null, null), null);
-        when(ownerRepository.existsByPerson_profile_Email("owner@example.com")).thenReturn(true);
+        when(ownerRepository.existsByPerson_Contact_Email("owner@example.com")).thenReturn(true);
 
         assertThrows(ConflictException.class, () -> service.create(request));
 
@@ -53,10 +53,10 @@ class OwnerServiceImplTest {
         UUID uuid = UUID.randomUUID();
         Owner owner = new Owner();
         Person person = new Person();
-        Profile profile = new Profile();
+        Contact contact = new Contact();
         Address address = new Address();
         owner.setPerson(person);
-        person.setProfile(profile);
+        person.setContact(contact);
         person.setAddress(address);
         when(ownerRepository.findByUuid(uuid)).thenReturn(Optional.of(owner));
 
@@ -64,7 +64,7 @@ class OwnerServiceImplTest {
 
         assertEquals(EntityStatus.DELETED, owner.getEntityStatus());
         assertEquals(EntityStatus.DELETED, person.getEntityStatus());
-        assertEquals(EntityStatus.DELETED, profile.getEntityStatus());
+        assertEquals(EntityStatus.DELETED, contact.getEntityStatus());
         assertEquals(EntityStatus.DELETED, address.getEntityStatus());
     }
 }

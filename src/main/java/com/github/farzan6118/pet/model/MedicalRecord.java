@@ -19,25 +19,24 @@ import java.time.LocalDate;
  * <p>
  * This entity intentionally has no service, repository, or controller yet.
  */
-@Entity
-@Table(name = "medical_records")
-@Audited
 @Getter
 @Setter
+@Entity
+@Audited
 @NoArgsConstructor
 @SQLRestriction("entity_status <> 'DELETED'")
 public class MedicalRecord extends BaseEntity<Long> {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "pet_id", nullable = false)
+    @JoinColumn(nullable = false)
     private Pet pet;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "visit_id", nullable = false)
+    @JoinColumn(nullable = false)
     private Visit visit;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "vet_id", nullable = false)
+    @JoinColumn(nullable = false)
     private Vet vet;
 
     @Enumerated(EnumType.STRING)
@@ -52,11 +51,11 @@ public class MedicalRecord extends BaseEntity<Long> {
     @Size(max = 2000)
     private String diagnosis;
 
-    @Column(name = "clinical_notes", length = 5000)
+    @Column(length = 5000)
     @Size(max = 5000)
     private String clinicalNotes;
 
-    @Column(name = "treatment_plan", length = 5000)
+    @Column(length = 5000)
     @Size(max = 5000)
     private String treatmentPlan;
 
@@ -64,17 +63,16 @@ public class MedicalRecord extends BaseEntity<Long> {
     @Size(max = 5000)
     private String prescription;
 
-    @Column(name = "follow_up_required", nullable = false)
+    @Column(nullable = false)
     private boolean followUpRequired;
 
-    @Column(name = "follow_up_date")
     private LocalDate followUpDate;
 
-    @Column(name = "vaccination_details", length = 2000)
+    @Column(length = 2000)
     @Size(max = 2000)
     private String vaccinationDetails;
 
-    @Column(name = "surgery_details", length = 3000)
+    @Column(length = 3000)
     @Size(max = 3000)
     private String surgeryDetails;
 }

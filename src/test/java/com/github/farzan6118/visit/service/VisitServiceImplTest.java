@@ -6,10 +6,9 @@ import com.github.farzan6118.appointment.dto.request.RescheduleVisitRequestDto;
 import com.github.farzan6118.appointment.model.Visit;
 import com.github.farzan6118.appointment.repository.VisitRepository;
 import com.github.farzan6118.appointment.service.VisitServiceCommandImpl;
+import com.github.farzan6118.clinic.model.Building;
 import com.github.farzan6118.clinic.model.Room;
-import com.github.farzan6118.clinic.model.Clinic;
 import com.github.farzan6118.clinic.service.RoomService;
-import com.github.farzan6118.common.enums.VisitCategory;
 import com.github.farzan6118.common.enums.VisitStatus;
 import com.github.farzan6118.common.enums.VisitType;
 import com.github.farzan6118.common.exception.BadRequestException;
@@ -84,9 +83,9 @@ class VisitServiceImplTest {
         room.setUuid(UUID.randomUUID());
         room.setName("Examination room");
         room.setActive(true);
-        Clinic clinic = new Clinic();
-        clinic.setActive(true);
-        room.setClinic(clinic);
+        Building building = new Building();
+        building.setActive(true);
+        room.setBuilding(building);
 
         lenient().when(vetAvailabilityService.findAvailableByUuidAndTimeRange(any(), any(), any()))
                 .thenReturn(Optional.of(vet));

@@ -3,7 +3,7 @@ package com.github.farzan6118.clinic.mapper;
 import com.github.farzan6118.clinic.dto.request.CreateClinicRequestDto;
 import com.github.farzan6118.clinic.dto.request.UpdateClinicRequestDto;
 import com.github.farzan6118.clinic.dto.response.ClinicResponseDto;
-import com.github.farzan6118.clinic.model.Clinic;
+import com.github.farzan6118.clinic.model.Building;
 import com.github.farzan6118.common.dto.response.UuidAndTitleResponseDto;
 import com.github.farzan6118.person.mapper.AddressMapper;
 import com.github.farzan6118.person.model.Address;
@@ -16,37 +16,37 @@ public class ClinicMapper {
 
     private final AddressMapper addressMapper;
 
-    public ClinicResponseDto toDto(Clinic clinic) {
+    public ClinicResponseDto toDto(Building building) {
         return new ClinicResponseDto(
-                clinic.getUuid(),
-                clinic.getName(),
-                clinic.getCode(),
-                addressMapper.toDto(clinic.getAddress()),
-                clinic.isActive()
+                building.getUuid(),
+                building.getName(),
+                building.getCode(),
+                addressMapper.toDto(building.getAddress()),
+                building.isActive()
         );
     }
 
-    public Clinic toEntity(CreateClinicRequestDto request) {
-        Clinic clinic = new Clinic();
-        clinic.setCode(request.code());
-        clinic.setName(request.name());
-        clinic.setAddress(addressMapper.toEntity(request.address()));
-        clinic.setActive(request.active());
-        return clinic;
+    public Building toEntity(CreateClinicRequestDto request) {
+        Building building = new Building();
+        building.setCode(request.code());
+        building.setName(request.name());
+        building.setAddress(addressMapper.toEntity(request.address()));
+        building.setActive(request.active());
+        return building;
     }
 
-    public void toEntity(UpdateClinicRequestDto request, Clinic clinic) {
-        Address address = clinic.getAddress();
-        clinic.setName(request.name());
-        clinic.setCode(request.code());
+    public void toEntity(UpdateClinicRequestDto request, Building building) {
+        Address address = building.getAddress();
+        building.setName(request.name());
+        building.setCode(request.code());
         addressMapper.toEntity(request.address(), address);
-        clinic.setActive(request.active());
+        building.setActive(request.active());
     }
 
-    public UuidAndTitleResponseDto toUuidAndTitle(Clinic clinic) {
+    public UuidAndTitleResponseDto toUuidAndTitle(Building building) {
         return new UuidAndTitleResponseDto(
-                clinic.getUuid(),
-                String.format("(%d) - %s", clinic.getCode(), clinic.getName())
+                building.getUuid(),
+                String.format("(%d) - %s", building.getCode(), building.getName())
         );
     }
 }

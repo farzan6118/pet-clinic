@@ -28,7 +28,7 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
             select room
             from Room room
             where room.active = true
-                and room.clinic.active = true
+                and room.building.active = true
                 and lower(room.roomType.name) in :roomTypeNames
             order by room.id
             """)
@@ -38,7 +38,7 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
             select room
             from Room room
             where room.active = true
-                and room.clinic.active = true
+                and room.building.active = true
                 and lower(room.roomType.name) in :roomTypeNames
             order by room.id
             """)

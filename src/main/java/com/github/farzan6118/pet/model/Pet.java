@@ -31,13 +31,14 @@ public class Pet extends BaseEntity<Long> {
     private Sex sex;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "species_id", nullable = false)
+    @JoinColumn(nullable = false)
     private Species species;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id", nullable = false)
+    @JoinColumn(nullable = false)
     private Owner owner;
 
     private LocalDate birthDate;
 
+    private String photo;
 }

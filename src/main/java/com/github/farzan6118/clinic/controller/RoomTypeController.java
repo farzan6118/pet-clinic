@@ -25,9 +25,9 @@ public class RoomTypeController {
 
     private final RoomTypeService roomTypeService;
 
-    @GetMapping("/{uuid}")
-    public ResponseEntity<RoomTypeResponseDto> getByUuid(@PathVariable UUID uuid) {
-        return ResponseEntity.ok(roomTypeService.getByUuid(uuid));
+    @GetMapping
+    public ResponseEntity<List<UuidAndTitleResponseDto>> findAllIdAndTitle() {
+        return ResponseEntity.ok(roomTypeService.findAllIdAndTitle());
     }
 
     @GetMapping("/page")
@@ -36,9 +36,9 @@ public class RoomTypeController {
         return ResponseEntity.ok(roomTypeService.findAll(requestDto));
     }
 
-    @GetMapping
-    public ResponseEntity<List<UuidAndTitleResponseDto>> findAllIdAndTitle() {
-        return ResponseEntity.ok(roomTypeService.findAllIdAndTitle());
+    @GetMapping("/{uuid}")
+    public ResponseEntity<RoomTypeResponseDto> getByUuid(@PathVariable UUID uuid) {
+        return ResponseEntity.ok(roomTypeService.getByUuid(uuid));
     }
 
     @PostMapping
@@ -49,9 +49,7 @@ public class RoomTypeController {
 
     @PutMapping("/{uuid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void update(
-            @PathVariable UUID uuid,
-            @Valid @RequestBody UpdateRoomTypeRequestDto request) {
+    public void update(@PathVariable UUID uuid, @Valid @RequestBody UpdateRoomTypeRequestDto request) {
         roomTypeService.update(uuid, request);
     }
 

@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/vet-availabilities")
+@RequestMapping("/api/vet/availabilities")
 public class VetAvailabilitySearchController {
 
     private final VetAvailabilityService vetAvailabilityService;

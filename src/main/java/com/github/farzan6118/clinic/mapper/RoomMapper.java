@@ -3,7 +3,7 @@ package com.github.farzan6118.clinic.mapper;
 import com.github.farzan6118.clinic.dto.request.CreateRoomRequestDto;
 import com.github.farzan6118.clinic.dto.request.UpdateRoomRequestDto;
 import com.github.farzan6118.clinic.dto.response.RoomResponseDto;
-import com.github.farzan6118.clinic.model.Clinic;
+import com.github.farzan6118.clinic.model.Building;
 import com.github.farzan6118.clinic.model.Room;
 import com.github.farzan6118.clinic.model.RoomType;
 import com.github.farzan6118.common.dto.response.UuidAndTitleResponseDto;
@@ -25,23 +25,23 @@ public class RoomMapper {
                 room.getRoomNumber(),
                 roomTypeMapper.toDto(room.getRoomType()),
                 room.isActive(),
-                room.getClinic().getUuid()
+                room.getBuilding().getUuid()
         );
     }
 
-    public void mapToEntity(CreateRoomRequestDto request, Room room, RoomType roomType, Clinic clinic) {
+    public void mapToEntity(CreateRoomRequestDto request, Room room, RoomType roomType, Building building) {
         room.setName(toLower(request.name()));
         room.setRoomNumber(toUpper(request.roomNumber()));
         room.setRoomType(roomType);
-        room.setClinic(clinic);
+        room.setBuilding(building);
         room.setActive(request.active());
     }
 
-    public void mapToEntity(UpdateRoomRequestDto request, Room room, RoomType roomType, Clinic clinic) {
+    public void mapToEntity(UpdateRoomRequestDto request, Room room, RoomType roomType, Building building) {
         room.setName(toLower(request.name()));
         room.setRoomNumber(toUpper(request.roomNumber()));
         room.setRoomType(roomType);
-        room.setClinic(clinic);
+        room.setBuilding(building);
         room.setActive(request.active());
     }
 

@@ -2,20 +2,20 @@ package com.github.farzan6118.common.persistence;
 
 import com.github.farzan6118.appointment.model.DurationTemplate;
 import com.github.farzan6118.appointment.repository.DurationTemplateRepository;
-import com.github.farzan6118.clinic.model.Clinic;
+import com.github.farzan6118.clinic.model.Building;
 import com.github.farzan6118.clinic.model.Room;
 import com.github.farzan6118.clinic.model.RoomType;
 import com.github.farzan6118.clinic.repository.ClinicRepository;
 import com.github.farzan6118.clinic.repository.RoomRepository;
 import com.github.farzan6118.clinic.repository.RoomTypeRepository;
-import com.github.farzan6118.clinic.service.ClinicService;
+import com.github.farzan6118.clinic.service.BuildingService;
 import com.github.farzan6118.common.enums.Sex;
 import com.github.farzan6118.common.valueobject.DateTimeRange;
 import com.github.farzan6118.owner.model.Owner;
 import com.github.farzan6118.owner.repository.OwnerRepository;
 import com.github.farzan6118.person.model.Address;
+import com.github.farzan6118.person.model.Contact;
 import com.github.farzan6118.person.model.Person;
-import com.github.farzan6118.person.model.Profile;
 import com.github.farzan6118.pet.model.Pet;
 import com.github.farzan6118.pet.model.Species;
 import com.github.farzan6118.pet.repository.PetRepository;
@@ -49,14 +49,14 @@ public class FillInitialRecords implements CommandLineRunner {
     private final RoomRepository roomRepository;
     private final PetRepository petRepository;
     private final VetRepository vetRepository;
-    private final ClinicService clinicService;
+    private final BuildingService buildingService;
 
     @Override
     @Transactional
     public void run(String... args) {
         seedDurationTemplates();
         seedSpecies();
-        seedClinic();
+        seedBuilding();
         seedRoomTypes();
         seedOwners();
         seedVets();
@@ -87,15 +87,15 @@ public class FillInitialRecords implements CommandLineRunner {
         ));
     }
 
-    private void seedClinic() {
+    private void seedBuilding() {
         if (clinicRepository.count() != 0) return;
-        Clinic clinic = new Clinic();
-        clinic.setCode(1);
-        clinic.setName("Main Clinic");
-        clinic.setAddress(address("Main clinic", "Berlin", "Berlin", "Afrikaner Str.",
+        Building building = new Building();
+        building.setCode(1);
+        building.setName("Main Building");
+        building.setAddress(address("Main building", "Berlin", "Berlin", "Afrikaner Str.",
                 1, "12A", 52.52D, 13.4D));
-        clinic.setActive(true);
-        clinicRepository.save(clinic);
+        building.setActive(true);
+        clinicRepository.save(building);
     }
 
     private void seedRoomTypes() {
@@ -126,20 +126,20 @@ public class FillInitialRecords implements CommandLineRunner {
 
     private void seedVets() {
         if (vetRepository.count() != 0) return;
-        Clinic clinic = clinicService.getFirstByActive();
+        Building building = buildingService.getFirstByActive();
         vetRepository.saveAll(List.of(
                 vet("Sara", "Moradi", "100000001",
                         LocalDate.of(1985, 3, 18),
                         "09210000001", "sara.moradi@example.com",
-                        "Berlin", "Your Boulevard", clinic),
+                        "Berlin", "Your Boulevard", building),
                 vet("Reza", "Hosseini", "100000002",
                         LocalDate.of(1982, 11, 2),
                         "09210000002", "reza.hosseini@example.com",
-                        "Hamburg", "Malibad Street", clinic),
+                        "Hamburg", "Malibad Street", building),
                 vet("Parisa", "Etemadi", "100000003",
                         LocalDate.of(1990, 6, 27),
                         "09210000003", "parisa.etemadi@example.com",
-                        "Dusseldorf", "Ferdowsi Street", clinic)
+                        "Dusseldorf", "Ferdowsi Street", building)
         ));
     }
 
@@ -176,18 +176,18 @@ public class FillInitialRecords implements CommandLineRunner {
 
     private void seedRooms() {
         if (roomRepository.count() != 0) return;
-        List<Clinic> clinics = clinicRepository.findAll();
+        List<Building> buildings = clinicRepository.findAll();
         List<RoomType> types = roomTypeRepository.findAll();
-        if (clinics.isEmpty() || types.isEmpty()) return;
-        Clinic clinic = clinics.getFirst();
+        if (buildings.isEmpty() || types.isEmpty()) return;
+        Building building = buildings.getFirst();
         RoomType examination = findRoomType(types, "examination");
         RoomType treatment = findRoomType(types, "treatment");
         RoomType surgery = findRoomType(types, "surgery");
         roomRepository.saveAll(List.of(
-                room("Examination Room 1", "EXAM-01", examination, clinic),
-                room("Examination Room 2", "EXAM-02", examination, clinic),
-                room("Treatment Room 1", "TREAT-01", treatment, clinic),
-                room("Surgery Room 1", "SURG-01", surgery, clinic)
+                room("Examination Room 1", "EXAM-01", examination, building),
+                room("Examination Room 2", "EXAM-02", examination, building),
+                room("Treatment Room 1", "TREAT-01", treatment, building),
+                room("Surgery Room 1", "SURG-01", surgery, building)
         ));
     }
 
@@ -249,41 +249,42 @@ public class FillInitialRecords implements CommandLineRunner {
     private Owner owner(String title, String firstName, String lastName, String nationalId,
                         LocalDate birthDate, String mobile, String email, String city, String street) {
         Person person = person(title, firstName, lastName, nationalId,
-                profile(email, mobile, birthDate), address("Home", city, city, street,
+                contact(email, mobile), address("Home", city, city, street,
                         2, "13B", 32.54D, 23.45D));
+        person.setBirthDate(birthDate);
         Owner owner = new Owner();
         owner.setPerson(person);
         return owner;
     }
 
     private Vet vet(String firstName, String lastName, String nationalId,
-                    LocalDate birthDate, String mobile, String email, String city, String street, Clinic clinic) {
+                    LocalDate birthDate, String mobile, String email, String city, String street, Building building) {
         Vet vet = new Vet();
         vet.setPerson(person("Dr.", firstName, lastName, nationalId,
-                profile(email, mobile, birthDate), address("Home", city, city, street,
+                contact(email, mobile), address("Home", city, city, street,
                         3, "13B", 32.54D, 23.45D)));
-        vet.setClinic(clinic);
+        vet.getPerson().setBirthDate(birthDate);
+        vet.setBuilding(building);
         return vet;
     }
 
     private Person person(String title, String firstName, String lastName, String nationalId,
-                          Profile profile, Address address) {
+                          Contact contact, Address address) {
         Person person = new Person();
         person.setTitle(title);
         person.setFirstName(firstName);
         person.setLastName(lastName);
         person.setNationalId(nationalId);
-        person.setProfile(profile);
+        person.setContact(contact);
         person.setAddress(address);
         return person;
     }
 
-    private Profile profile(String email, String mobile, LocalDate birthDate) {
-        Profile profile = new Profile();
-        profile.setEmail(email);
-        profile.setMobileNumber(mobile);
-        profile.setBirthDate(birthDate);
-        return profile;
+    private Contact contact(String email, String mobile) {
+        Contact contact = new Contact();
+        contact.setEmail(email);
+        contact.setMobileNumber(mobile);
+        return contact;
     }
 
     private Address address(String title, String province, String city,
@@ -325,12 +326,12 @@ public class FillInitialRecords implements CommandLineRunner {
         return roomType;
     }
 
-    private Room room(String name, String number, RoomType roomType, Clinic clinic) {
+    private Room room(String name, String number, RoomType roomType, Building building) {
         Room room = new Room();
         room.setName(name);
         room.setRoomNumber(number);
         room.setRoomType(roomType);
-        room.setClinic(clinic);
+        room.setBuilding(building);
         room.setActive(true);
         return room;
     }

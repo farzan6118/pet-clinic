@@ -26,8 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -95,7 +95,7 @@ public class VisitServiceCommandImpl implements VisitServiceCommand {
         }
 
         Room room = roomService.getEntityByUuidForUpdate(roomUuid);
-        if (!room.isActive() || room.getClinic() == null || !room.getClinic().isActive()) {
+        if (!room.isActive() || room.getBuilding() == null || !room.getBuilding().isActive()) {
             throw new ConflictException("The selected room is not available");
         }
         return room;

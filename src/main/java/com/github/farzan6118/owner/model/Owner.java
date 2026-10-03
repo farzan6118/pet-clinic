@@ -18,7 +18,7 @@ import org.hibernate.annotations.SQLRestriction;
 public class Owner extends BaseEntity<Long> {
 
     @OneToOne(cascade = CascadeType.ALL, optional = false)
-    @JoinColumn(name = "person_id", nullable = false, unique = true)
+    @JoinColumn(nullable = false)
     private Person person;
 
     public String getFullName() {
@@ -26,15 +26,15 @@ public class Owner extends BaseEntity<Long> {
     }
 
     public String getEmail() {
-        return this.person.getProfile().getEmail();
+        return this.person.getContact().getEmail();
     }
 
     public String getMobileNumber() {
-        return this.person.getProfile().getMobileNumber();
+        return this.person.getContact().getMobileNumber();
     }
 
     public void setStatus(EntityStatus status) {
-        this.person.getProfile().setEntityStatus(status);
+        this.person.getContact().setEntityStatus(status);
         this.person.getAddress().setEntityStatus(status);
         this.person.setEntityStatus(status);
         this.setEntityStatus(status);

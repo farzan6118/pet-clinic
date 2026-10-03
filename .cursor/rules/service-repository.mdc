@@ -1,5 +1,5 @@
 ---
-description: Service, repository, DTO, and query conventions for pet-clinic
+description: Service, repository, DTO, and query conventions for pet-building
 alwaysApply: true
 ---
 

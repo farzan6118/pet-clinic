@@ -1,16 +1,16 @@
 package com.github.farzan6118.clinic.repository;
 
-import com.github.farzan6118.clinic.model.Clinic;
+import com.github.farzan6118.clinic.model.Building;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 import java.util.UUID;
 
-public interface ClinicRepository extends JpaRepository<Clinic, Integer> {
+public interface ClinicRepository extends JpaRepository<Building, Integer> {
 
-    Optional<Clinic> findByUuid(UUID uuid);
+    Optional<Building> findByUuid(UUID uuid);
 
-    Optional<Clinic> findFirstByActive(boolean active);
+    Optional<Building> findFirstByActive(boolean active);
 
     boolean existsByCode(int code);
 

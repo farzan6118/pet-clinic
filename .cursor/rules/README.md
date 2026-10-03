@@ -1,6 +1,6 @@
-# Cursor rules for `pet-clinic`
+# Cursor rules for `pet-building`
 
-These rules are tailored to this Spring Boot veterinary-clinic backend and should not be copied from or applied as
+These rules are tailored to this Spring Boot veterinary-building backend and should not be copied from or applied as
 generic rules for unrelated services.
 
 ## Rule files

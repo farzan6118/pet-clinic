@@ -1,6 +1,6 @@
 package com.github.farzan6118.vet.mapper;
 
-import com.github.farzan6118.clinic.model.Clinic;
+import com.github.farzan6118.clinic.model.Building;
 import com.github.farzan6118.common.dto.response.UuidAndTitleResponseDto;
 import com.github.farzan6118.person.mapper.AddressMapper;
 import com.github.farzan6118.person.mapper.PersonMapper;
@@ -30,43 +30,43 @@ public class VetMapper {
         return new VetResponseDto(
                 vet.getUuid(),
                 personMapper.toDto(person),
-                profileMapper.toDto(person.getProfile()),
+                profileMapper.toDto(person),
                 addressMapper.toDto(person.getAddress()),
-                vet.getClinic() == null ? null : vet.getClinic().getUuid()
+                vet.getBuilding() == null ? null : vet.getBuilding().getUuid()
         );
     }
 
     public Vet toEntity(VetCreateRequestDto request) {
         Vet vet = new Vet();
         Person person = personMapper.toEntity(request.person());
-        person.setProfile(profileMapper.toEntity(request.profile()));
+        person.setContact(profileMapper.toEntity(request.profile(), person));
         person.setAddress(addressMapper.toEntity(request.address()));
         vet.setPerson(person);
         return vet;
     }
 
-    public Vet toEntity(VetCreateRequestDto request, Clinic clinic) {
+    public Vet toEntity(VetCreateRequestDto request, Building building) {
         Vet vet = new Vet();
         Person person = personMapper.toEntity(request.person());
-        person.setProfile(profileMapper.toEntity(request.profile()));
+        person.setContact(profileMapper.toEntity(request.profile(), person));
         person.setAddress(addressMapper.toEntity(request.address()));
         vet.setPerson(person);
-        vet.setClinic(clinic);
+        vet.setBuilding(building);
         return vet;
     }
 
-    public void toEntity(VetUpdateRequestDto request, Vet vet, Clinic clinic) {
+    public void toEntity(VetUpdateRequestDto request, Vet vet, Building building) {
         Person person = vet.getPerson();
         personMapper.toEntity(request.person(), person);
-        profileMapper.toEntity(request.profile(), person.getProfile());
+        profileMapper.toEntity(request.profile(), person);
         addressMapper.toEntity(request.address(), person.getAddress());
-        vet.setClinic(clinic);
+        vet.setBuilding(building);
     }
 
     public void toEntity(VetUpdateRequestDto request, Vet vet) {
         Person person = vet.getPerson();
         personMapper.toEntity(request.person(), person);
-        profileMapper.toEntity(request.profile(), person.getProfile());
+        profileMapper.toEntity(request.profile(), person);
         addressMapper.toEntity(request.address(), person.getAddress());
     }
 

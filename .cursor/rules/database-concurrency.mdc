@@ -1,11 +1,11 @@
 ---
-description: PostgreSQL transactions and scheduling concurrency in pet-clinic
+description: PostgreSQL transactions and scheduling concurrency in pet-building
 alwaysApply: true
 ---
 
 # Persistence and concurrency
 
-The application uses PostgreSQL through Spring Data JPA and Hibernate. Follow the live `pom.xml`, profile configuration, repositories, and entity mappings; do not apply SQL Server-specific hints or assumptions.
+The application uses PostgreSQL through Spring Data JPA and Hibernate. Follow the live `pom.xml`, contact configuration, repositories, and entity mappings; do not apply SQL Server-specific hints or assumptions.
 
 ## Transactions
 
@@ -16,14 +16,14 @@ The application uses PostgreSQL through Spring Data JPA and Hibernate. Follow th
 
 ## Visit and availability conflicts
 
-Visit booking/rescheduling is concurrency-sensitive. The current domain checks clinic hours and closed days, veterinarian availability, and overlapping veterinarian, pet, and room reservations. `Visit` and `VetAvailability` use `DateTimeRange`.
+Visit booking/rescheduling is concurrency-sensitive. The current domain checks building hours and closed days, veterinarian availability, and overlapping veterinarian, pet, and room reservations. `Visit` and `VetAvailability` use `DateTimeRange`.
 
 The code uses pessimistic JPA locks in selected repository methods (including Room, Vet, Pet, and Visit lookups) and custom QueryDSL queries for interval overlap. Booking locks selected resources in Room, Vet, then Pet order; rescheduling first locks the Visit, then follows the resource lock order. Before changing these:
 
 1. Identify which shared rows compete and which operation obtains each lock.
 2. Preserve the existing transaction boundary and lock order unless a reviewed change requires otherwise.
 3. Check that overlap checks and inserts/updates remain protected from concurrent requests.
-4. Keep time-zone and same-day behavior consistent with `DateTimeRange`, clinic hours, and request DTO serialization.
+4. Keep time-zone and same-day behavior consistent with `DateTimeRange`, building hours, and request DTO serialization.
 5. Consider whether notification delivery can happen before a database rollback.
 
 Do not remove a pessimistic lock or replace an overlap query based only on its appearance. Use a derived Spring Data method for simple association lookups when it expresses the query clearly; keep explicit queries when interval overlap, locking, or query complexity requires them.

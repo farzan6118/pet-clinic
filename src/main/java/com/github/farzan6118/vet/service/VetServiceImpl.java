@@ -1,8 +1,8 @@
 package com.github.farzan6118.vet.service;
 
 import com.github.farzan6118.appointment.model.Visit;
-import com.github.farzan6118.clinic.model.Clinic;
-import com.github.farzan6118.clinic.service.ClinicService;
+import com.github.farzan6118.clinic.model.Building;
+import com.github.farzan6118.clinic.service.BuildingService;
 import com.github.farzan6118.common.dto.request.PageAndSortRequestDto;
 import com.github.farzan6118.common.dto.response.PageResponseDto;
 import com.github.farzan6118.common.dto.response.UuidAndTitleResponseDto;
@@ -37,7 +37,7 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class VetServiceImpl implements VetService {
 
-    private final ClinicService clinicService;
+    private final BuildingService buildingService;
     private final VetRepository vetRepository;
     private final PageMapper pageMapper;
     private final VetMapper vetMapper;
@@ -140,18 +140,18 @@ public class VetServiceImpl implements VetService {
     public void create(VetCreateRequestDto request) {
 
         validateUniqueContactInfo(request.profile().mobileNumber(), request.profile().email());
-        Clinic clinic = clinicService.getEntityByUuid(request.clinicUuid());
-        Vet vet = vetMapper.toEntity(request, clinic);
+        Building building = buildingService.getEntityByUuid(request.clinicUuid());
+        Vet vet = vetMapper.toEntity(request, building);
 
         vetRepository.save(vet);
         log.info("vet created");
     }
 
     private void validateUniqueContactInfo(String mobileNumber, String email) {
-        if (vetRepository.existsByPerson_Profile_Email(email)) {
+        if (vetRepository.existsByPerson_Contact_Email(email)) {
             throw new ConflictException("A veterinarian with this email already exists", "Duplicate veterinarian email");
         }
-        if (vetRepository.existsByPerson_Profile_MobileNumber(mobileNumber)) {
+        if (vetRepository.existsByPerson_Contact_MobileNumber(mobileNumber)) {
             throw new ConflictException("A veterinarian with this mobile number already exists", "Duplicate veterinarian mobile number");
         }
     }
@@ -168,13 +168,13 @@ public class VetServiceImpl implements VetService {
     }
 
     private void validateEmailUniqueness(String email, UUID vetUuid) {
-        if (vetRepository.existsByPerson_Profile_EmailAndUuidNot(email, vetUuid)) {
+        if (vetRepository.existsByPerson_Contact_EmailAndUuidNot(email, vetUuid)) {
             throw new ConflictException("A veterinarian with this email already exists", "Duplicate veterinarian email");
         }
     }
 
     private void validateTelephoneUniqueness(String mobileNumber, UUID vetUuid) {
-        if (vetRepository.existsByPerson_Profile_MobileNumberAndUuidNot(mobileNumber, vetUuid)) {
+        if (vetRepository.existsByPerson_Contact_MobileNumberAndUuidNot(mobileNumber, vetUuid)) {
             throw new ConflictException("A veterinarian with this mobile number already exists", "Duplicate veterinarian mobile number");
         }
     }

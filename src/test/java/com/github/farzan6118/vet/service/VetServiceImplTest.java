@@ -1,17 +1,17 @@
 package com.github.farzan6118.vet.service;
 
+import com.github.farzan6118.clinic.model.Building;
+import com.github.farzan6118.clinic.service.BuildingService;
 import com.github.farzan6118.common.enums.EntityStatus;
 import com.github.farzan6118.common.exception.ConflictException;
 import com.github.farzan6118.common.mapper.PageMapper;
-import com.github.farzan6118.clinic.model.Clinic;
-import com.github.farzan6118.clinic.service.ClinicService;
+import com.github.farzan6118.person.dto.request.AddressCreateRequestDto;
+import com.github.farzan6118.person.dto.request.PersonCreateRequestDto;
 import com.github.farzan6118.person.dto.request.ProfileCreateRequestDto;
 import com.github.farzan6118.person.dto.request.ProfileUpdateRequestDto;
-import com.github.farzan6118.person.dto.request.PersonCreateRequestDto;
-import com.github.farzan6118.person.dto.request.AddressCreateRequestDto;
 import com.github.farzan6118.person.model.Address;
+import com.github.farzan6118.person.model.Contact;
 import com.github.farzan6118.person.model.Person;
-import com.github.farzan6118.person.model.Profile;
 import com.github.farzan6118.vet.dto.request.VetCreateRequestDto;
 import com.github.farzan6118.vet.dto.request.VetUpdateRequestDto;
 import com.github.farzan6118.vet.mapper.VetMapper;
@@ -41,7 +41,7 @@ class VetServiceImplTest {
     @Mock
     private VetMapper vetMapper;
     @Mock
-    private ClinicService clinicService;
+    private BuildingService buildingService;
     @InjectMocks
     private VetServiceImpl service;
 
@@ -53,13 +53,13 @@ class VetServiceImplTest {
                 profileCreate(), new AddressCreateRequestDto("Home", "Germany", "Berlin", "Berlin",
                 "1", null, null, "Main Street", "1234567890", 52.52, 13.4, null, true), clinicUuid);
         Vet vet = new Vet();
-        Clinic clinic = new Clinic();
-        when(clinicService.getEntityByUuid(clinicUuid)).thenReturn(clinic);
-        when(vetMapper.toEntity(request, clinic)).thenReturn(vet);
+        Building building = new Building();
+        when(buildingService.getEntityByUuid(clinicUuid)).thenReturn(building);
+        when(vetMapper.toEntity(request, building)).thenReturn(vet);
 
         service.create(request);
 
-        verify(vetMapper).toEntity(request, clinic);
+        verify(vetMapper).toEntity(request, building);
         verify(vetRepository).save(vet);
     }
 
@@ -68,13 +68,13 @@ class VetServiceImplTest {
         UUID uuid = UUID.randomUUID();
         Vet vet = new Vet();
         when(vetRepository.findByUuid(uuid)).thenReturn(Optional.of(vet));
-        when(vetRepository.existsByPerson_Profile_EmailAndUuidNot("new@example.com", uuid)).thenReturn(true);
+        when(vetRepository.existsByPerson_Contact_EmailAndUuidNot("new@example.com", uuid)).thenReturn(true);
         VetUpdateRequestDto request = new VetUpdateRequestDto(null,
                 new ProfileUpdateRequestDto("new@example.com", "09121111111", null, null), null);
 
         assertThrows(ConflictException.class, () -> service.update(uuid, request));
 
-        verify(vetRepository).existsByPerson_Profile_EmailAndUuidNot("new@example.com", uuid);
+        verify(vetRepository).existsByPerson_Contact_EmailAndUuidNot("new@example.com", uuid);
         verifyNoInteractions(vetMapper);
     }
 
@@ -83,10 +83,10 @@ class VetServiceImplTest {
         UUID uuid = UUID.randomUUID();
         Vet vet = new Vet();
         Person person = new Person();
-        Profile profile = new Profile();
+        Contact contact = new Contact();
         Address address = new Address();
         vet.setPerson(person);
-        person.setProfile(profile);
+        person.setContact(contact);
         person.setAddress(address);
         when(vetRepository.findByUuid(uuid)).thenReturn(Optional.of(vet));
 
@@ -94,7 +94,7 @@ class VetServiceImplTest {
 
         assertEquals(EntityStatus.DELETED, vet.getEntityStatus());
         assertEquals(EntityStatus.DELETED, person.getEntityStatus());
-        assertEquals(EntityStatus.DELETED, profile.getEntityStatus());
+        assertEquals(EntityStatus.DELETED, contact.getEntityStatus());
         assertEquals(EntityStatus.DELETED, address.getEntityStatus());
     }
 

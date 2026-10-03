@@ -6,7 +6,8 @@ This file is the working context for future development sessions. Read it before
 
 ## 1. What this project is
 
-`pet-clinic` is a backend-first veterinary clinic management system. It is intended to manage clinic operations such as:
+`pet-building` is a backend-first veterinary building management system. It is intended to manage building operations
+such as:
 
 - Pet owners and their pets
 - Pet species and related information
@@ -80,11 +81,11 @@ The code is organized mainly by domain feature:
 ```text
 auth/           Authentication endpoints and identity DTOs
 common/         Shared exceptions, enums, persistence, pagination, mappers
-config/         Spring, security, OpenAPI, Redis/client, and clinic configuration
+config/         Spring, security, OpenAPI, Redis/client, and building configuration
 infrastructure/ External integrations such as Keycloak and email
 owner/          Owner entity, DTOs, mapper, repository, service, controller
 pet/            Pet and species entities, DTOs, mappers, repositories, services, controllers
-clinic/         Clinics, rooms, and room types
+building/         Clinics, rooms, and room types
 vet/            Veterinarians, profiles, and availability
 appointment/    Visits, duration templates, scheduling, searching, and notifications
 ```
@@ -101,7 +102,12 @@ src/main/resources/docker/mailpit-docker-compose.yml
 
 ## 5. Domain model
 
-Shared person data lives in `person/`. `Person` stores title, first name, last name, and national ID, and has required one-to-one associations to `Profile` and `Address`. `Profile` stores email, mobile number, birth date, and photo. `Address` stores structured location details and optional coordinates. `Owner` and `Vet` each refer to a `Person`; vet availability remains on `Vet`. Owner and vet create/update requests carry nested `person`, `profile`, and `address` objects, and responses expose the corresponding mapped DTOs. Contact lookups and uniqueness checks therefore follow the `person.profile` relationship.
+Shared person data lives in `person/`. `Person` stores title, first name, last name, and national ID, and has required
+one-to-one associations to `Contact` and `Address`. `Contact` stores email, mobile number, birth date, and photo.
+`Address` stores structured location details and optional coordinates. `Owner` and `Vet` each refer to a `Person`; vet
+availability remains on `Vet`. Owner and vet create/update requests carry nested `person`, `contact`, and `address`
+objects, and responses expose the corresponding mapped DTOs. Contact lookups and uniqueness checks therefore follow the
+`person.contact` relationship.
 
 The central relationship is:
 
@@ -119,12 +125,12 @@ Important entities include:
 - `Pet`: animal belonging to an owner and participating in visits
 - `Species`: pet species/type data
 - `Vet`: association to a shared `Person` with veterinarian availability
-- `Profile`: shared contact details, birth date, and photo for a person
+- `Contact`: shared contact details, birth date, and photo for a person
 - `Address`: structured address and optional geolocation associated with a person
-- `Clinic`: clinic location with a required address
-- `Room`: clinic room associated with a clinic and room type
+- `Building`: building location with a required address
+- `Room`: building room associated with a building and room type
 - `VetAvailability`: a veterinarian's available time interval, embedded as `DateTimeRange`
-- `RoomType`: classification of clinic rooms
+- `RoomType`: classification of building rooms
 - `Visit`: appointment connecting a pet, veterinarian, embedded `DateTimeRange`, visit type, and optionally a room
 - `DateTimeRange`: JPA embeddable storing required start/end timestamps and providing duration, date/time, validity, same-day, and overlap helpers; used by both `Visit` and `VetAvailability`
 - `DurationTemplate`: reusable duration configuration, including the `STANDARD` duration used by visit booking
@@ -149,7 +155,7 @@ When booking a visit, the service generally:
 
 1. Reads requested duration in minutes (default 15), rounds it up to the configured availability block size (default 5 minutes), and builds start/end timestamps.
 3. Validates that the time range is valid and remains on one day.
-4. Checks clinic working hours and closed days.
+4. Checks building working hours and closed days.
 5. Locks the selected Room when present, then the veterinarian and Pet in a consistent order.
 6. Uses the locked Pet row.
 7. Requires the supplied Room UUID for ONSITE visits and rejects a Room UUID for ONLINE or OFFSITE visits.
@@ -160,7 +166,9 @@ When booking a visit, the service generally:
 12. Saves the visit in a transaction.
 13. Sends visit notifications by email.
 
-Rescheduling locks the current Visit, then the selected Room when present, Vet, and Pet; it repeats availability/conflict checks while excluding the current visit. It preserves the existing duration and rounds it using `clinic.availability.time-block-minutes`.
+Rescheduling locks the current Visit, then the selected Room when present, Vet, and Pet; it repeats
+availability/conflict checks while excluding the current visit. It preserves the existing duration and rounds it using
+`building.availability.time-block-minutes`.
 
 Visit completion validates the current status and ensures the visit has started but has not already ended.
 
@@ -181,9 +189,15 @@ The future API should expose a pet's medical-record history to authorized operat
 
 ## 7. API and application behavior
 
-The API is organized under `/api`. Daily Room availability is served at `/api/rooms/{uuid}/availability?date=YYYY-MM-DD`; daily Vet availability is served at `/api/vets/{uuid}/availability?date=YYYY-MM-DD`. Room blocks are bounded by clinic working hours, while Vet blocks are bounded by active Vet availability intervals. `clinic.availability.time-block-minutes` controls the block size (default 5 minutes); returned timelines include only blocks inside those windows.
+The API is organized under `/api`. Daily Room availability is served at
+`/api/rooms/{uuid}/availability?date=YYYY-MM-DD`; daily Vet availability is served at
+`/api/vets/{uuid}/availability?date=YYYY-MM-DD`. Room blocks are bounded by building working hours, while Vet blocks are
+bounded by active Vet availability intervals. `building.availability.time-block-minutes` controls the block size
+(default 5 minutes); returned timelines include only blocks inside those windows.
 
-Clinic administration uses `/api/clinics`; room requests refer to a clinic and room type by UUID. Room types, species, pets, vets, and clinics use paginated list responses. CRUD writes validate duplicate natural keys before saving and use soft deletion through `EntityStatus`.
+Clinic administration uses `/api/buildings`; room requests refer to a building and room type by UUID. Room types,
+species, pets, vets, and buildings use paginated list responses. CRUD writes validate duplicate natural keys before
+saving and use soft deletion through `EntityStatus`.
 
 The visit controller currently exposes endpoints for:
 
@@ -208,7 +222,7 @@ Profiles currently include:
 - `home`, active by default through Maven
 - `company`
 
-The home profile currently defaults to:
+The home contact currently defaults to:
 
 - PostgreSQL on `localhost:5432`
 - Database name `pet_clinic`
@@ -291,7 +305,7 @@ Recommended order:
 5. Add integration tests for concurrent booking and database lock behavior.
 6. Inject a `Clock` instead of calling `LocalDateTime.now()` directly to make time-dependent logic deterministic.
 7. Review API status codes and parameter annotations, especially rescheduling and cancellation.
-8. Add authorization tests for owners, vets, administrators, and clinic staff.
+8. Add authorization tests for owners, vets, administrators, and building staff.
 9. Add observability and operational documentation before production deployment.
 10. Build the React administration panel after the API contract stabilizes.
 
@@ -319,7 +333,9 @@ For production-facing changes, also consider transaction boundaries, concurrent 
 
 ## 13. Overall assessment
 
-The project has a good architectural direction and a realistic veterinary-clinic domain. Its strongest area is the business-oriented appointment model, which already accounts for real operational constraints instead of treating visits as simple records.
+The project has a good architectural direction and a realistic veterinary-building domain. Its strongest area is the
+business-oriented appointment model, which already accounts for real operational constraints instead of treating visits
+as simple records.
 
 The main weakness is project maturity around reliability: tests have fallen behind implementation changes, security is currently bypassed, and environment secrets/schema management need hardening.
 

@@ -4,7 +4,7 @@ import com.github.farzan6118.clinic.dto.request.CreateClinicRequestDto;
 import com.github.farzan6118.clinic.dto.request.UpdateClinicRequestDto;
 import com.github.farzan6118.clinic.dto.response.ClinicResponseDto;
 import com.github.farzan6118.clinic.mapper.ClinicMapper;
-import com.github.farzan6118.clinic.model.Clinic;
+import com.github.farzan6118.clinic.model.Building;
 import com.github.farzan6118.clinic.repository.ClinicRepository;
 import com.github.farzan6118.common.dto.request.PageAndSortRequestDto;
 import com.github.farzan6118.common.dto.response.PageResponseDto;
@@ -29,7 +29,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class ClinicServiceImpl implements ClinicService {
+public class BuildingServiceImpl implements BuildingService {
 
     private final ClinicRepository clinicRepository;
     private final ClinicMapper clinicMapper;
@@ -41,13 +41,13 @@ public class ClinicServiceImpl implements ClinicService {
     }
 
     @Override
-    public Clinic getEntityByUuid(UUID uuid) {
+    public Building getEntityByUuid(UUID uuid) {
         return clinicRepository.findByUuid(uuid)
                 .orElseThrow(() -> new ResourceNotFoundException("clinic not found"));
     }
 
     @Override
-    public Clinic getFirstByActive() {
+    public Building getFirstByActive() {
         return clinicRepository.findFirstByActive(true)
                 .orElseThrow(() -> new ResourceNotFoundException("clinic not found"));
     }
@@ -55,7 +55,7 @@ public class ClinicServiceImpl implements ClinicService {
     @Override
     public PageResponseDto<ClinicResponseDto> findAll(PageAndSortRequestDto request) {
         Pageable pageable = pageMapper.getPageable(request);
-        Page<Clinic> clinics = clinicRepository.findAll(pageable);
+        Page<Building> clinics = clinicRepository.findAll(pageable);
         return pageMapper.toPageResponse(clinics, clinicMapper::toDto);
     }
 
@@ -89,10 +89,10 @@ public class ClinicServiceImpl implements ClinicService {
     @Transactional
     @CacheEvict(value = "clinic")
     public void update(UUID uuid, UpdateClinicRequestDto request) {
-        Clinic clinic = getEntityByUuid(uuid);
-        validateUniqueCodeForUpdate(request.code(), clinic.getUuid());
-        clinicMapper.toEntity(request, clinic);
-        log.info("clinic updated: {}", uuid);
+        Building building = getEntityByUuid(uuid);
+        validateUniqueCodeForUpdate(request.code(), building.getUuid());
+        clinicMapper.toEntity(request, building);
+        log.info("building updated: {}", uuid);
     }
 
     private void validateUniqueCodeForUpdate(Integer code, UUID Uuid) {
@@ -107,13 +107,13 @@ public class ClinicServiceImpl implements ClinicService {
     @Transactional
     @CacheEvict(value = "clinic")
     public void delete(UUID uuid) {
-        Clinic clinic = getEntityByUuid(uuid);
-        if (clinic.getEntityStatus() != EntityStatus.ACTIVE) {
+        Building building = getEntityByUuid(uuid);
+        if (building.getEntityStatus() != EntityStatus.ACTIVE) {
             throw new ConflictException(
-                    "clinic is already inactive",
-                    "clinic is already inactive");
+                    "building is already inactive",
+                    "building is already inactive");
         }
-        clinic.setEntityStatus(EntityStatus.DELETED);
-        log.info("clinic deleted: {}", uuid);
+        building.setEntityStatus(EntityStatus.DELETED);
+        log.info("building deleted: {}", uuid);
     }
 }
