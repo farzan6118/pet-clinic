@@ -151,6 +151,13 @@ Hibernate currently uses `ddl-auto: update`. Flyway settings are commented out a
 
 All API routes use the `/api` prefix. Request and response bodies use DTOs; persistence entities are not intended to be exposed directly.
 
+### Internationalization
+
+API error and validation messages use Spring's `messages.properties` bundle. English is the default and currently the
+only
+supported locale. Clients may send `Accept-Language: en`; unsupported languages fall back to English. Add future locale
+bundles as `messages_<language>.properties` and register supported locales in `I18nConfig`.
+
 | Resource                  | Base route                           | Main operations                                                                       |
 |---------------------------|--------------------------------------|---------------------------------------------------------------------------------------|
 | Authentication            | `/api/auth/login`                    | Login                                                                                 |

@@ -3,6 +3,7 @@ package com.github.farzan6118.common.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -27,13 +28,19 @@ import java.util.TreeSet;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private final MessageSource messageSource;
+
+    public GlobalExceptionHandler(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
+
     @ExceptionHandler(ApplicationException.class)
     public ResponseEntity<ErrorResponseDto> handleApplicationException(
             ApplicationException ex, HttpServletRequest request) {
         log.warn("Request rejected. status={}, path={}, detail={}",
                 ex.getStatus().value(), request.getRequestURI(),
                 ex.getLogMessage() == null ? ex.getMessage() : ex.getLogMessage());
-        return buildResponse(ex.getStatus(), ex.getUserMessage(), request);
+        return buildResponse(ex.getStatus(), message(ex.getUserMessage(), ex.getUserMessage(), request), request);
     }
 
     @ExceptionHandler(BindException.class)
@@ -46,7 +53,7 @@ public class GlobalExceptionHandler {
         String message = errors.entrySet().stream()
                 .map(entry -> entry.getKey() + ": " + String.join("; ", entry.getValue()))
                 .reduce((left, right) -> left + ", " + right)
-                .orElse("Request validation failed");
+                .orElseGet(() -> message("error.request.validation.failed", "Request validation failed", request));
         return buildResponse(HttpStatus.BAD_REQUEST, message, request);
     }
 
@@ -58,37 +65,41 @@ public class GlobalExceptionHandler {
                 .distinct()
                 .sorted()
                 .reduce((left, right) -> left + ", " + right)
-                .orElse("Request validation failed");
+                .orElseGet(() -> message("error.request.validation.failed", "Request validation failed", request));
         return buildResponse(HttpStatus.BAD_REQUEST, message, request);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponseDto> handleUnreadableMessage(HttpServletRequest request) {
-        return buildResponse(HttpStatus.BAD_REQUEST, "Malformed request body", request);
+        return buildResponse(HttpStatus.BAD_REQUEST,
+                message("error.request.malformed", "Malformed request body", request), request);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponseDto> handleTypeMismatch(
             MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
         return buildResponse(HttpStatus.BAD_REQUEST,
-                "Invalid value for parameter '" + ex.getName() + "'", request);
+                message("error.parameter.invalid", "Invalid value for parameter '{0}'", request, ex.getName()), request);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponseDto> handleDataIntegrityViolation(
             DataIntegrityViolationException ex, HttpServletRequest request) {
         log.warn("Data integrity conflict. path={}, cause={}", request.getRequestURI(), ex.getClass().getSimpleName());
-        return buildResponse(HttpStatus.CONFLICT, "Request conflicts with existing data", request);
+        return buildResponse(HttpStatus.CONFLICT,
+                message("error.data.conflict", "Request conflicts with existing data", request), request);
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponseDto> handleAuthenticationException(HttpServletRequest request) {
-        return buildResponse(HttpStatus.UNAUTHORIZED, "Authentication required", request);
+        return buildResponse(HttpStatus.UNAUTHORIZED,
+                message("error.authentication.required", "Authentication required", request), request);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponseDto> handleAccessDeniedException(HttpServletRequest request) {
-        return buildResponse(HttpStatus.FORBIDDEN, "Access denied", request);
+        return buildResponse(HttpStatus.FORBIDDEN,
+                message("error.access.denied", "Access denied", request), request);
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
@@ -99,7 +110,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<ErrorResponseDto> handleMediaTypeNotSupported(HttpServletRequest request) {
-        return buildResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Unsupported media type", request);
+        return buildResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                message("error.media-type.unsupported", "Unsupported media type", request), request);
     }
 
     @ExceptionHandler(ResponseStatusException.class)
@@ -117,7 +129,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDto> handleException(Exception ex, HttpServletRequest request) {
         log.error("Unexpected exception. path={}", request.getRequestURI(), ex);
 
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong", request);
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR,
+                message("error.unexpected", "Something went wrong", request), request);
+    }
+
+    private String message(String code, String fallback, HttpServletRequest request, Object... arguments) {
+        return messageSource.getMessage(code, arguments, fallback, request.getLocale());
     }
 
     private ResponseEntity<ErrorResponseDto> buildResponse(
