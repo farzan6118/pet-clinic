@@ -1,0 +1,119 @@
+package com.github.farzan6118.clinic.service;
+
+import com.github.farzan6118.clinic.dto.request.CreateClinicRequestDto;
+import com.github.farzan6118.clinic.dto.request.UpdateClinicRequestDto;
+import com.github.farzan6118.clinic.dto.response.BuildingResponseDto;
+import com.github.farzan6118.clinic.mapper.BuildingMapper;
+import com.github.farzan6118.clinic.model.Building;
+import com.github.farzan6118.clinic.repository.ClinicRepository;
+import com.github.farzan6118.common.dto.request.PageAndSortRequestDto;
+import com.github.farzan6118.common.dto.response.PageResponseDto;
+import com.github.farzan6118.common.dto.response.UuidAndTitleResponseDto;
+import com.github.farzan6118.common.enums.EntityStatus;
+import com.github.farzan6118.common.exception.ConflictException;
+import com.github.farzan6118.common.exception.ResourceNotFoundException;
+import com.github.farzan6118.common.mapper.PageMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.UUID;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class BuildingServiceImpl implements BuildingService {
+
+    private final ClinicRepository clinicRepository;
+    private final BuildingMapper buildingMapper;
+    private final PageMapper pageMapper;
+
+    @Override
+    public BuildingResponseDto getByUuid(UUID uuid) {
+        return buildingMapper.toDto(getEntityByUuid(uuid));
+    }
+
+    @Override
+    public Building getEntityByUuid(UUID uuid) {
+        return clinicRepository.findByUuid(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("clinic not found"));
+    }
+
+    @Override
+    public Building getFirstByActive() {
+        return clinicRepository.findFirstByActive(true)
+                .orElseThrow(() -> new ResourceNotFoundException("clinic not found"));
+    }
+
+    @Override
+    public PageResponseDto<BuildingResponseDto> findAll(PageAndSortRequestDto request) {
+        Pageable pageable = pageMapper.getPageable(request);
+        Page<Building> clinics = clinicRepository.findAll(pageable);
+        return pageMapper.toPageResponse(clinics, buildingMapper::toDto);
+    }
+
+    @Override
+    @Cacheable(value = "clinic")
+    public List<UuidAndTitleResponseDto> findAllIdAndTitle() {
+        return clinicRepository.findAll()
+                .stream()
+                .map(buildingMapper::toUuidAndTitle)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "clinic")
+    public void create(CreateClinicRequestDto request) {
+        validateUniqueCode(request.code());
+        clinicRepository.save(buildingMapper.toEntity(request));
+        log.info("clinic created");
+    }
+
+    private void validateUniqueCode(Integer code) {
+        if (clinicRepository.existsByCode(code)) {
+            throw new ConflictException(
+                    "clinic with this code already exists",
+                    "Duplicate clinic code");
+        }
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "clinic")
+    public void update(UUID uuid, UpdateClinicRequestDto request) {
+        Building building = getEntityByUuid(uuid);
+        validateUniqueCodeForUpdate(request.code(), building.getUuid());
+        buildingMapper.toEntity(request, building);
+        log.info("building updated: {}", uuid);
+    }
+
+    private void validateUniqueCodeForUpdate(Integer code, UUID Uuid) {
+        if (clinicRepository.existsByCodeAndUuidNot(code, Uuid)) {
+            throw new ConflictException(
+                    "clinic with this code already exists",
+                    "Duplicate clinic code");
+        }
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "clinic")
+    public void delete(UUID uuid) {
+        Building building = getEntityByUuid(uuid);
+        if (building.getEntityStatus() != EntityStatus.ACTIVE) {
+            throw new ConflictException(
+                    "building is already inactive",
+                    "building is already inactive");
+        }
+        building.setEntityStatus(EntityStatus.DELETED);
+        log.info("building deleted: {}", uuid);
+    }
+}

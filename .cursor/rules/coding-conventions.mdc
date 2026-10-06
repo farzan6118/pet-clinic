@@ -1,0 +1,36 @@
+---
+description: Java and API conventions used by the pet-building backend
+alwaysApply: true
+---
+
+# Coding conventions
+
+Follow nearby code in this repository before introducing a new style. The build targets Java 21 and Spring Boot 4.1.1. Do not upgrade dependencies as part of an unrelated change.
+
+## Java and Spring
+
+- Use constructor injection; follow nearby Lombok usage such as `@RequiredArgsConstructor` rather than adding a second injection style.
+- Preserve the feature's service interface/implementation pattern and DTO naming (`Create...RequestDto`, `Update...RequestDto`, `...ResponseDto`).
+- Use Jakarta Bean Validation at request boundaries and existing service validation for domain rules. Reuse the exception types and `GlobalExceptionHandler` response conventions.
+- Use `@Transactional` at the business-operation boundary. Inspect the full call chain before changing read-only defaults, writes, locks, or external side effects.
+- Use `EntityStatus` for entity lifecycle changes and preserve existing soft-delete behavior.
+- Match the existing handwritten mapper style. MapStruct and ModelMapper are not current project dependencies or conventions.
+- Use `PageMapper` and the shared paging DTOs for pageable endpoints.
+
+## Naming and null behavior
+
+Use the actual domain vocabulary and package names: owner, person, pet, species, vet, availability, building, room, visit, and duration template. Production visit code is under `appointment/`, although one existing unit test package is `visit/`; follow the test's existing location when touching it rather than renaming packages opportunistically.
+
+Preserve established `Optional`, nullable field, enum, and exception behavior. Do not add wrappers or catch broad exceptions merely for stylistic consistency.
+
+## Configuration and sensitive values
+
+Profile configuration lives in `src/main/resources/application*.yaml`. Do not print, repeat, or copy credentials from those files into source, documentation, test output, or chat. Use environment-backed configuration for new secrets and avoid unrelated config cleanup.
+
+## API changes
+
+Before changing an API, inspect its controller, request/response DTOs, service, mapper, and current consumers. Preserve route and payload compatibility unless the task explicitly requires a breaking change. Keep OpenAPI examples consistent with serialized Java time formats and the actual DTO types.
+
+## Editing
+
+Check `git status` and the diff first. Preserve unrelated and staged user changes. Keep edits scoped to the requested behavior; do not rewrite adjacent modules or documentation unless required to keep the changed contract accurate.

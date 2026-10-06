@@ -1,4 +1,4 @@
-In a pet clinic or veterinary hospital, visit types are typically categorized by the reason for the appointment, the
+In a pet building or veterinary hospital, visit types are typically categorized by the reason for the appointment, the
 urgency, and whether a veterinarian or a veterinary technician handles it.
 
 Here is a breakdown of the standard visit types:
@@ -39,7 +39,7 @@ Here is a breakdown of the standard visit types:
 7. Consultations & Special Visits
    Behavior Consultation: Addressing anxiety, aggression, or litter box issues.
    Nutritional / Weight Management Consultation: Custom diet plans for obesity or health-related dietary needs.
-   Second Opinion / Referral Consultation: In-depth review of another clinic's medical records.
+   Second Opinion / Referral Consultation: In-depth review of another building's medical records.
 8. End-of-Life Care
    Quality of Life (QoL) Consultation: Assessment with the veterinarian to evaluate the pet's comfort and discuss
    hospice care.

@@ -1,0 +1,63 @@
+package com.github.farzan6118.person.model;
+
+import com.github.farzan6118.common.persistence.BaseEntity;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
+import org.springframework.util.StringUtils;
+
+import java.time.LocalDate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+@Entity
+@Getter
+@Setter
+@SQLRestriction("entity_status <> 'DELETED'")
+public class Person extends BaseEntity<Long> {
+
+    @Size(max = 10)
+    private String title;
+
+    @Size(max = 128)
+    private String firstName;
+
+    @Size(max = 128)
+    private String lastName;
+
+    @Size(max = 20)
+    private String nationalId;
+
+    @Past
+    private LocalDate birthDate;
+
+    private String photo;
+
+    @OneToOne(
+            cascade = CascadeType.ALL,
+            optional = false,
+            orphanRemoval = true
+    )
+    @JoinColumn(nullable = false, unique = true)
+    private Contact contact;
+
+    @OneToOne(
+            cascade = CascadeType.ALL,
+            optional = false,
+            orphanRemoval = true
+    )
+    @JoinColumn(nullable = false, unique = true)
+    private Address address;
+
+    public String getFullName() {
+        return Stream.of(firstName, lastName)
+                .filter(StringUtils::hasText)
+                .collect(Collectors.joining(" "));
+    }
+}

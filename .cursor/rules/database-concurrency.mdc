@@ -1,0 +1,39 @@
+---
+description: PostgreSQL transactions and scheduling concurrency in pet-building
+alwaysApply: true
+---
+
+# Persistence and concurrency
+
+The application uses PostgreSQL through Spring Data JPA and Hibernate. Follow the live `pom.xml`, contact configuration, repositories, and entity mappings; do not apply SQL Server-specific hints or assumptions.
+
+## Transactions
+
+- Put a transaction around a coherent local business operation when atomicity is required. Many service implementations are class-level `@Transactional(readOnly = true)` with write methods explicitly marked `@Transactional`; preserve this pattern where present.
+- A transaction covers the local database work only. It does not atomically include Keycloak HTTP calls or email delivery.
+- Visit command operations coordinate visit state, availability/conflict checks, and sometimes a medical record and notifications. Inspect the full call chain before moving a notification or changing rollback behavior.
+- Avoid adding transactions to every method or keeping locks open across unnecessary work.
+
+## Visit and availability conflicts
+
+Visit booking/rescheduling is concurrency-sensitive. The current domain checks building hours and closed days, veterinarian availability, and overlapping veterinarian, pet, and room reservations. `Visit` and `VetAvailability` use `DateTimeRange`.
+
+The code uses pessimistic JPA locks in selected repository methods (including Room, Vet, Pet, and Visit lookups) and custom QueryDSL queries for interval overlap. Booking locks selected resources in Room, Vet, then Pet order; rescheduling first locks the Visit, then follows the resource lock order. Before changing these:
+
+1. Identify which shared rows compete and which operation obtains each lock.
+2. Preserve the existing transaction boundary and lock order unless a reviewed change requires otherwise.
+3. Check that overlap checks and inserts/updates remain protected from concurrent requests.
+4. Keep time-zone and same-day behavior consistent with `DateTimeRange`, building hours, and request DTO serialization.
+5. Consider whether notification delivery can happen before a database rollback.
+
+Do not remove a pessimistic lock or replace an overlap query based only on its appearance. Use a derived Spring Data method for simple association lookups when it expresses the query clearly; keep explicit queries when interval overlap, locking, or query complexity requires them.
+
+## Entity lifecycle and seed data
+
+Most domain entities use `EntityStatus`, soft deletion, and Hibernate `@SQLRestriction`. Preserve how each service handles `ACTIVE`, `INACTIVE`, and `DELETED` records; do not substitute physical deletion.
+
+`common.persistence.FillInitialRecords` is a transactional startup seed runner. It checks whether data groups are empty before inserting sample data. Do not treat it as a scheduled job or production provisioning system.
+
+## Current infrastructure limits
+
+There is no Kafka/outbox workflow, SQL Server lock-hint convention, or scheduled-job framework in this repository. Do not add those mechanisms unless the requested feature and existing dependencies justify them.

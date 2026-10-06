@@ -1,0 +1,36 @@
+---
+description: Service, repository, DTO, and query conventions for pet-building
+alwaysApply: true
+---
+
+# Service and repository conventions
+
+Follow the feature's existing Spring structure. A common shape is a controller delegating to a service interface and implementation, with the implementation using its own Spring Data repository and mapper. Smaller use cases may omit a layer when current code does so.
+
+## Service boundaries
+
+- Put business rules, orchestration, and transaction boundaries in services.
+- A service may use its own repositories, other domain service interfaces, configuration/property objects, mappers, and infrastructure abstractions.
+- Do not make one domain service depend directly on another domain's repository. Reuse or extend the owning domain's service.
+- Controllers should validate/request-bind, call a service, and return the established response/status. They must not query repositories directly.
+
+## Persistence and queries
+
+- Domain repositories generally extend Spring Data `JpaRepository` directly. There is no active generic base-service/repository framework; `common/repository/BaseEntityRepository.java` and its implementation are commented legacy code.
+- Use Spring Data derived methods for straightforward property-path lookups when clear. Use existing QueryDSL or explicit JPQL where dynamic predicates, interval overlap, projections, or pessimistic locking require it.
+- Keep persistence queries in repository code. Avoid moving query construction or EntityManager access into controllers/services.
+- Preserve `BaseEntity` audit/UUID/status behavior, entity relationships, and each entity's `@SQLRestriction`.
+- Use shared `PageAndSortRequestDto`, `PageMapper`, and `PageResponseDto` for existing paginated endpoint patterns.
+
+## DTOs and mapping
+
+- Keep HTTP contracts in request/response DTOs and do not expose entities from controllers.
+- Match current `Create...RequestDto`, `Update...RequestDto`, and `...ResponseDto` naming and Jakarta validation conventions.
+- Use the existing handwritten feature mapper. Do not add a competing mapper framework for a small change.
+- Check Jackson date/time patterns against the actual Java type, API examples, and frontend payload. `LocalDate`, `LocalTime`, and `LocalDateTime` are not interchangeable.
+
+## Lifecycle and errors
+
+Use the existing `EntityStatus` lifecycle and exception hierarchy (`BadRequestException`, `ConflictException`, `ResourceNotFoundException`, `ForbiddenException`, and `ExternalServiceException`) where appropriate. Do not replace logical deletion with physical deletion or return a second error format.
+
+Before editing, inspect the controller, service interface/implementation, repository, entity, DTOs, mapper, analogous feature, and its existing tests. Keep the patch limited to the requested behavior.
